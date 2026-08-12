@@ -1,0 +1,1056 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f3ef" />
+  <title>上海公交智能体 · 养老商业化演示</title>
+  <style>
+    :root {
+      --bg: #f5f3ef;
+      --paper: #ffffff;
+      --ink: #202124;
+      --muted: #93979d;
+      --blue: #168cf5;
+      --green: #00c982;
+      --yellow: #ffd91a;
+      --warm: #fff2a9;
+      --violet: #6358ff;
+      --purple: #b829db;
+      --line: #ebeae7;
+      --elder: #ff7a45;
+      --elder-deep: #e8612f;
+      --shadow: 0 12px 36px rgba(41, 38, 25, .07);
+      --safe-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: #d8d8d8; color: var(--ink); }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+    button, input { font: inherit; }
+    button { border: 0; color: inherit; }
+    [hidden] { display: none !important; }
+
+    .app {
+      position: relative;
+      width: min(100%, 430px);
+      height: 100dvh;
+      min-height: 640px;
+      margin: 0 auto;
+      overflow: hidden;
+      background: var(--bg);
+      box-shadow: 0 0 80px rgba(0,0,0,.18);
+      isolation: isolate;
+    }
+
+    .view {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--bg);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(24px);
+      transition: opacity .28s ease, transform .32s cubic-bezier(.22,.75,.25,1), visibility .32s;
+    }
+    .view.active { opacity: 1; visibility: visible; transform: translateX(0); z-index: 2; }
+    .view.leaving { transform: translateX(-20px); }
+
+    .scroll {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 112px;
+    }
+    .scroll::-webkit-scrollbar { display: none; }
+
+    .ambient { display:none; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 80px;
+      padding: max(13px, env(safe-area-inset-top)) 22px 9px;
+      z-index: 8;
+      background: var(--bg);
+    }
+    .avatar { width:41px; height:41px; border-radius:50%; border:2px solid rgba(255,255,255,.95); object-fit:cover; box-shadow:0 3px 12px rgba(80,50,0,.10); }
+    .agent-title { min-width:0; flex:1; }
+    .agent-title strong { display:block; font-size:18px; letter-spacing:-.65px; font-weight:760; white-space:nowrap; }
+    .agent-title span { display:none; }
+    .top-actions { display:flex; align-items:center; gap:9px; }
+    .icon-btn { display:grid; place-items:center; padding:0; background:transparent; cursor:pointer; transition:transform .18s ease, opacity .18s ease; }
+    .icon-btn:active { transform:scale(.92); }
+    .icon-btn img { display:block; object-fit:contain; }
+    #soundBtn { width:40px; height:40px; }
+    #soundBtn img { width:34px; height:34px; }
+    #moreBtn { width:82px; height:32px; }
+    #moreBtn img { width:82px; height:auto; }
+    #chatSound { width:40px; height:40px; border-radius:50%; background:#afaeab; color:#fff; }
+    #chatSound svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .icon-btn.active { opacity:.72; }
+
+    .content { position: relative; z-index: 1; padding: 14px 14px 32px; }
+    .home-reply { display:none; margin-top:13px; }
+    #homeView.reply-mode .section-heading-row,
+    #homeView.reply-mode .query-list,
+    #homeView.reply-mode .elder-ad { display:none; }
+    #homeView.reply-mode .content { padding-top:14px; }
+    #homeView .bus-card[aria-label="12路公交实时信息"] {
+      position:sticky;
+      top:80px;
+      z-index:7;
+      margin-bottom:13px;
+      box-shadow:0 9px 20px rgba(37,35,25,.10);
+    }
+    #homeView.reply-mode .home-reply { display:block; }
+    #homeView.reply-mode .home-scroll-card { animation:pushUp .42s cubic-bezier(.22,.75,.25,1) both; }
+    @keyframes pushUp { from { opacity:0; transform:translateY(34px); } to { opacity:1; transform:translateY(0); } }
+    .section-kicker { margin: 22px 7px 10px; font-size: 14px; color: #9b9b9b; font-weight: 500; }
+    .section-heading-row { display:flex; align-items:end; justify-content:space-between; margin: 22px 7px 10px; }
+    .section-heading-row .section-kicker { margin:0; }
+    .rotate-note { font-size: 10px; color:#aaa; }
+
+    .wifi-card, .bus-card, .query, .answer-card { background: var(--paper); box-shadow: var(--shadow); }
+    .wifi-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding: 14px 16px;
+      border-radius: 23px;
+    }
+    .wifi-copy { min-width: 0; flex: 1; }
+    .wifi-route-line { display:flex; align-items:center; gap:5px; min-width:0; }
+    .wifi-route-tag { flex:none; display:block; width:120px; height:19px; object-fit:fill; }
+    .wifi-copy strong { display: block; flex:none; font-size: 18px; letter-spacing: -.4px; line-height:1; }
+    .wifi-copy > span { display: block; color: #a3a3a3; margin-top: 8px; font-size: 13px; line-height:1; }
+    .wifi-connect { display:flex; align-items:center; gap:7px; flex:none; border-radius: 22px; padding: 10px 17px; background: #ffeb8d; font-size: 16px; font-weight: 650; cursor:pointer; }
+    .wifi-connect.connected { background:#ddf8eb; color:#008a58; }
+    .wifi-connect img { display:block; width:22px; height:22px; object-fit:contain; }
+
+    .bus-card { position:relative; padding: 17px 17px 7px; border-radius: 24px; overflow:hidden; }
+    .bus-card.compact { margin-bottom: 13px; padding-bottom: 15px; }
+    .chat-scroll > .bus-card.compact {
+      position:sticky;
+      top:10px;
+      z-index:3;
+      margin:0 0 13px;
+      padding:14px 17px 15px;
+      border-radius:24px;
+      box-shadow:0 9px 18px rgba(37,35,25,.10);
+    }
+    .route-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+    .route-dest { font-size: 18px; font-weight:680; letter-spacing:-.35px; }
+    .route-next { color:#6f7277; margin-top:6px; font-size:14px; }
+    .route-next b { color:var(--blue); font-weight:650; }
+    .remind-btn { background:#3298ff; color:#fff; border-radius:18px; padding:8px 13px; font-size:12px; cursor:pointer; white-space:nowrap; }
+    .remind-btn.set { background:#eceef1; color:#989da4; }
+    .route-track { position:relative; height:90px; margin:8px -17px 0; }
+    .route-viewport { height:100%; overflow-x:auto; overflow-y:hidden; padding:0 17px; scrollbar-width:none; -webkit-overflow-scrolling:touch; cursor:grab; }
+    .route-viewport::-webkit-scrollbar { display:none; }
+    .route-viewport:active { cursor:grabbing; }
+    .route-rail { position:relative; width:820px; height:86px; }
+    .route-line { position:absolute; left:30px; right:30px; top:41px; height:4px; border-radius:999px; background:linear-gradient(90deg,#c7cad1 0 19%,var(--green) 19%); }
+    .route-line::after { content:""; position:absolute; left:21%; right:0; top:0; height:100%; background:repeating-linear-gradient(135deg,transparent 0 7px,rgba(255,255,255,.9) 7px 9px,transparent 9px 15px); }
+    .route-stop { position:absolute; top:34px; left:var(--x); width:82px; height:52px; transform:translateX(-50%); text-align:center; }
+    .route-stop::before { content:""; display:block; width:16px; height:16px; margin:0 auto; border:3px solid white; border-radius:50%; background:var(--green); box-sizing:border-box; position:relative; z-index:1; }
+    .route-stop.passed::before { background:#c7cad1; }
+    .route-stop.current::before { width:23px; height:23px; margin-top:-4px; background:var(--green); box-shadow:0 0 0 3px #eefaf5; }
+    .route-stop .station-name { position:absolute; left:50%; top:21px; width:max-content; max-width:90px; transform:translateX(-50%); color:#737373; font-size:13px; line-height:1.2; white-space:nowrap; }
+    .route-stop.label-top .station-name { top:-23px; }
+    .route-stop.current .station-name { top:-27px; color:#202124; font-size:15px; font-weight:700; }
+    .route-stop.current .current-tag { display:none; }
+    .route-stop.destination.is-destination::before { width:24px; height:24px; margin-top:-4px; background:var(--blue); box-shadow:0 0 0 3px #edf7ff; }
+    .route-stop.destination.is-destination .station-name { color:var(--blue); font-weight:700; }
+    .destination-tag { display:none; position:absolute; left:50%; top:39px; transform:translateX(-50%); width:max-content; padding:2px 5px; border-radius:4px; color:var(--blue); background:#e8f4ff; font-size:8px; line-height:1.1; white-space:nowrap; }
+    .route-stop.destination.is-destination .destination-tag { display:block; }
+    .bus-emoji { position:absolute; left:13%; top:3px; transform:translateX(-50%); font-size:19px; filter:drop-shadow(0 2px 1px rgba(0,0,0,.12)); animation:busBob 2s ease-in-out infinite; }
+    @keyframes busBob { 0%,100%{transform:translate(-50%,0) rotate(-1deg)} 50%{transform:translate(-50%,-2px) rotate(1deg)} }
+    .compact .route-track { height:84px; margin-top:7px; transform:scaleY(.94); transform-origin:top; }
+    .compact .route-rail { height:82px; }
+
+    /* ── 养老广告模块（首页，严格按设计稿） ─────────────── */
+    .elder-ad {
+      position:relative;
+      margin-top:14px;
+      padding:12px 15px 9px;
+      border-radius:23px;
+      color:#2d2119;
+      background:
+        radial-gradient(120% 115% at 93% 1%, rgba(255,232,207,.72), transparent 43%),
+        radial-gradient(100% 130% at 3% 100%, rgba(226,240,218,.58), transparent 42%),
+        #ffffff;
+      box-shadow:0 12px 28px rgba(120,80,20,.10);
+      cursor:pointer;
+      overflow:hidden;
+      transition:transform .18s ease, box-shadow .18s ease;
+    }
+    .elder-ad:active { transform:scale(.992); box-shadow:0 6px 16px rgba(160,84,24,.14); }
+    .elder-ad:focus-visible { outline:3px solid rgba(255,138,60,.4); outline-offset:3px; }
+    .elder-ad-head { display:block; }
+    .elder-brand-row { display:flex; align-items:center; gap:7px; min-height:26px; }
+    .elder-brand-row span { line-height:1; }
+    .elder-brand-mark { flex:none; display:block; width:23px; height:21px; object-fit:contain; }
+    .elder-brand-left { color:#252525; font-size:14px; font-weight:800; letter-spacing:-.6px; white-space:nowrap; }
+    .elder-brand-right { display:block; width:78px; height:19px; margin-left:4px; object-fit:contain; object-position:left center; }
+    .elder-ad .elder-tags { display:flex; align-items:center; gap:4px; margin-top:11px; min-width:0; overflow:hidden; }
+    .elder-ad .elder-tags span { flex:none; padding:4px 5px; border:0; border-radius:3px; color:#f16635; background:#fff0e9; box-shadow:none; font-size:11px; line-height:1; white-space:nowrap; }
+    .elder-ad .elder-tags span:first-child { color:#332516; background:#f0d7a9; }
+    .elder-ad-main { display:grid; grid-template-columns:75px minmax(0,1fr); gap:12px; align-items:start; margin-top:5px; }
+    .elder-ad-thumb { display:block; width:75px; height:72px; border-radius:9px; object-fit:cover; object-position:center; }
+    .elder-ad-copy { min-width:0; padding-top:1px; }
+    .elder-name { margin:0; color:#2a1c12; font-size:17px; font-weight:800; line-height:1.04; letter-spacing:-.8px; white-space:nowrap; }
+    .elder-offer { display:flex; align-items:center; gap:5px; min-width:0; margin-top:7px; }
+    .elder-learn { display:none; }
+    .elder-price-now { flex:none; color:#ff513c; font-size:22px; font-weight:850; letter-spacing:-1px; line-height:1; }
+    .elder-price-old { flex:none; color:#77736f; font-size:12px; line-height:1; }
+    .elder-price-cut { flex:none; padding:3px 5px; border:1px solid #df3f35; border-radius:4px; color:#df3f35; background:#fff; font-size:10px; font-style:normal; line-height:1; white-space:nowrap; }
+    .elder-offer-name { min-width:0; flex:1; overflow:hidden; color:#201c18; font-size:11px; font-weight:500; line-height:1.2; text-overflow:ellipsis; white-space:nowrap; }
+    .elder-foot { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:8px; padding-top:9px; border-top:1px solid #eee9e2; }
+    .elder-foot-note { color:#8e8e8e; font-size:13px; line-height:1; white-space:nowrap; }
+    .elder-cta { flex:none; display:inline-flex; align-items:center; gap:3px; min-height:30px; padding:5px 12px; border-radius:999px; color:#fff; background:linear-gradient(135deg,#ff783d,#f45f27); box-shadow:0 6px 14px rgba(240,95,38,.26); font-size:12px; font-weight:800; white-space:nowrap; }
+
+    /* ── 猜你想问 ────────────────────────────── */
+    .query-list { display:flex; flex-direction:column; align-items:flex-start; gap:10px; }
+    .query {
+      position:relative;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      width:fit-content;
+      max-width:100%;
+      min-height:48px;
+      padding:10px 14px;
+      text-align:left;
+      border-radius:17px;
+      cursor:pointer;
+      transition: transform .18s ease, box-shadow .18s ease, opacity .28s ease;
+    }
+    .query:active { transform:scale(.985); box-shadow:0 6px 16px rgba(41,38,25,.08); }
+    .query-icon { flex:none; display:block; width:25px; height:25px; object-fit:contain; }
+    .query-elder .query-icon { display:grid; place-items:center; font-size:19px; line-height:1; }
+    .query-text { flex:0 1 auto; min-width:0; font-size:15px; font-weight:650; line-height:1.34; }
+    .query-elder .query-text { background:linear-gradient(90deg,#6155F5,#CB30E0); -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent; }
+    .chev { flex:none; margin-left:1px; font-size:22px; line-height:1; color:#727272; font-weight:300; }
+    .query-elder { background:linear-gradient(#ffffff,#ffffff) padding-box, linear-gradient(90deg,#6155F5,#CB30E0) border-box; border:1px solid transparent; box-shadow:0 12px 26px rgba(93,76,210,.10); }
+
+    .ad-query,
+    .answer-card {
+      border-radius:20px;
+      border:1px solid rgba(36,52,75,.06);
+      box-shadow:0 8px 24px rgba(40,48,58,.08), 0 2px 6px rgba(40,48,58,.04);
+      transition:transform .2s ease, box-shadow .2s ease;
+    }
+    .rank-img { position:relative; width:94px; height:94px; align-self:start; overflow:hidden; border-radius:16px; }
+    .rank-img::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(12,35,57,.12)); }
+    .rank-img img { display:block; width:100%; height:100%; object-fit:cover; filter:saturate(.94) contrast(1.02); transition:transform .28s ease, filter .28s ease; }
+    .ad-copy,
+    .attraction-info { position:relative; display:flex; flex:1; min-width:0; flex-direction:column; justify-content:center; gap:7px; padding:12px 50px 12px 14px; }
+    .ad-copy .query-text,
+    .attraction-name { display:flex; align-items:center; flex-wrap:wrap; gap:6px; overflow:visible; background:none; color:#2e2118; font-size:16px; font-weight:760; line-height:1.25; letter-spacing:-.3px; }
+    .ad-grade,
+    .grade { display:inline-flex; align-items:center; flex:none; margin-left:0; padding:3px 6px; vertical-align:0; border-radius:6px; background:#fff2e4; color:#b96a22; font-size:10px; font-weight:700; letter-spacing:0; }
+    .ad-meta,
+    .hot-row { display:flex; align-items:center; flex-wrap:nowrap; min-width:0; gap:6px; margin-top:0; color:#7b8793; font-size:11px; line-height:1.25; }
+    .ad-category,
+    .hot-category { display:inline-flex; align-items:center; min-height:0; min-width:0; max-width:100%; padding:0; border-radius:0; color:#788490; background:none; font-size:10px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ad-meta .ad-category,
+    .hot-row .hot-category { flex:1 1 auto; }
+    .ad-score,
+    .heat { display:inline-flex; align-items:center; flex:none; gap:2px; min-height:20px; padding:3px 6px; border-radius:7px; background:#fff5b8; color:#202020; font-size:12px; line-height:1; font-weight:750; white-space:nowrap; box-shadow:inset 0 0 0 1px rgba(255,194,44,.12); }
+    .ad-facts,
+    .facts { display:grid; gap:4px; margin-top:0; color:#8894a0; font-size:11px; line-height:1.2; }
+    .ad-fact { display:block; }
+    .ad-tickets { display:grid; gap:4px; min-width:0; margin-top:0; }
+    .ad-ticket { display:grid; grid-template-columns:auto auto minmax(0,1fr) auto; align-items:baseline; min-width:0; gap:5px; overflow:hidden; white-space:nowrap; line-height:1.15; }
+    .ad-price-now { flex:none; color:#f0481e; font-size:18px; font-weight:400; letter-spacing:-.3px; }
+    .ad-price-old { flex:none; color:#a6a6a6; font-size:10px; }
+    .ad-ticket-name { min-width:0; overflow:hidden; text-overflow:ellipsis; color:#202124; font-size:11px; font-weight:650; }
+    .ad-refund { min-width:0; max-width:80px; overflow:hidden; text-overflow:ellipsis; color:#f06b32; font-size:10px; font-weight:650; }
+    .answer-card { overflow:hidden; }
+    .attraction-top { display:grid; grid-template-columns:94px 1fr; gap:12px; padding:12px; }
+    .arrow-circle { position:absolute; right:12px; top:12px; display:grid; place-items:center; width:27px; height:27px; border-radius:50%; background:#eef2f8; color:#8392af; font-size:20px; font-weight:300; line-height:1; }
+    .answer-intro { position:relative; padding:0 14px 15px; }
+    .answer-intro h3 { margin:10px 0 8px; color:#09213b; font-size:16px; }
+    .answer-intro p { margin:0; color:#203850; font-size:12px; line-height:1.78; }
+    .gallery { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:12px; }
+    .gallery img { width:100%; height:92px; border-radius:10px; object-fit:cover; }
+    .click-hint { display:flex; align-items:center; justify-content:center; gap:5px; padding:9px; color:#6f7f90; border-top:1px solid #f0f1f2; font-size:10px; }
+    .click-hint b { color:#405eff; }
+    .answer-card:active,
+    .ad-query:active { transform:scale(.985); box-shadow:0 5px 14px rgba(40,48,58,.08); }
+    .ad-query:hover,
+    .answer-card:hover { box-shadow:0 12px 30px rgba(40,48,58,.11), 0 3px 8px rgba(40,48,58,.05); }
+    .answer-card:hover .rank-img img,
+    .answer-card:active .rank-img img { transform:scale(1.035); filter:saturate(1) contrast(1.04); }
+    .rotating-out { opacity:.15; transform:translateY(-4px); }
+
+    .composer-wrap { position:absolute; left:0; right:0; bottom:0; z-index:5; padding:12px 14px var(--safe-bottom); background:linear-gradient(180deg,rgba(245,243,239,0),rgba(245,243,239,.96) 26%,#f5f3ef 55%); }
+    .composer { display:flex; align-items:center; gap:9px; height:56px; padding:6px 14px 6px 9px; border-radius:29px; background:#fff; box-shadow:0 11px 30px rgba(0,0,0,.10); }
+    .voice-btn { display:grid; place-items:center; flex:none; width:38px; height:38px; padding:0; background:transparent; cursor:pointer; }
+    .voice-btn img { display:block; width:32px; height:32px; object-fit:contain; transition:transform .18s ease, opacity .18s ease; }
+    .voice-btn.listening img { animation:voicePulse .9s ease-in-out infinite; }
+    @keyframes voicePulse { 50%{ transform:scale(.86); opacity:.65; } }
+    .composer input { min-width:0; flex:1; border:0; outline:0; color:#222; background:transparent; font-size:15px; }
+    .composer input::placeholder { color:#a2a2a2; }
+
+    /* Chat view */
+    #chatView { display:flex; flex-direction:column; }
+    #chatView.active { display:flex; }
+    .chat-head { position:relative; flex:none; display:flex; align-items:center; gap:10px; min-height:75px; padding:max(15px, env(safe-area-inset-top)) 14px 10px; background:linear-gradient(130deg,#fff8dc,#fff0a7); z-index:3; }
+    .back-btn { display:grid; place-items:center; flex:none; width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.7); cursor:pointer; }
+    .back-btn svg { width:22px; height:22px; fill:none; stroke:#222; stroke-width:2.1; stroke-linecap:round; stroke-linejoin:round; }
+    .chat-head .avatar { width:38px; height:38px; }
+    .chat-title { flex:1; min-width:0; }
+    .chat-title strong { display:block; font-size:15px; }
+    .chat-title span { color:#8a7a5c; font-size:10px; }
+    .chat-scroll { flex:1 1 auto; height:auto; min-height:0; padding:12px 14px 132px; overscroll-behavior:contain; }
+    .user-msg { display:flex; justify-content:flex-end; margin:0 0 14px; animation:popIn .28s ease both; }
+    .user-bubble { max-width:80%; padding:12px 16px; background:var(--yellow); border-radius:19px 19px 5px 19px; font-weight:650; font-size:15px; line-height:1.4; box-shadow:0 6px 16px rgba(207,163,0,.13); }
+    @keyframes popIn { from{opacity:0;transform:translateY(8px) scale(.97)} to{opacity:1;transform:none} }
+    .typing { display:flex; align-items:center; gap:4px; width:max-content; padding:13px 15px; border-radius:6px 17px 17px; background:#fff; box-shadow:var(--shadow); }
+    .typing i { width:6px; height:6px; border-radius:50%; background:#aaa; animation:typing 1s infinite; }
+    .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+    @keyframes typing { 0%,65%,100%{transform:translateY(0);opacity:.5} 32%{transform:translateY(-4px);opacity:1} }
+    .text-answer { padding:15px; border-radius:6px 19px 19px; background:#fff; box-shadow:var(--shadow); color:#363b42; font-size:13px; line-height:1.7; }
+    .text-answer h3 { margin:0 0 8px; color:#16181b; font-size:16px; }
+    .text-answer .answer-chip { display:inline-block; margin-top:10px; padding:7px 10px; border-radius:10px; background:#ffefe3; color:#e2592f; font-weight:650; line-height:1; }
+    .answer-detail-link { display:block; width:calc(100% - 28px); margin:0 14px 14px; padding:11px; border-radius:12px; color:#fff; background:linear-gradient(90deg,#ff842d,#f0451e); box-shadow:0 6px 14px rgba(240,69,30,.22); font-size:14px; font-weight:800; text-align:center; cursor:pointer; }
+    .answer-detail-link:active { transform:scale(.98); }
+    .followups { display:flex; gap:7px; overflow-x:auto; margin-top:10px; padding-bottom:3px; scrollbar-width:none; }
+    .followups::-webkit-scrollbar { display:none; }
+    .followups button { flex:none; padding:8px 11px; border-radius:15px; color:#555; background:#fff; border:1px solid #e9e9e9; cursor:pointer; font-size:11px; }
+    .followups button:active { color:#e2592f; border-color:#ffb18d; }
+
+    /* ── 养老机构详情页（设计稿） ─────────────────── */
+    #detailView { background:#f5f4f1; }
+    .detail-scroll { padding:0 0 calc(96px + env(safe-area-inset-bottom)); }
+    .detail-hero { position:relative; height:250px; overflow:hidden; color:#fff; background:#5a4a3a; }
+    .detail-hero-image { width:100%; height:100%; object-fit:cover; object-position:50% 44%; }
+    .detail-hero::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(35,22,10,.4),rgba(35,22,10,.02) 48%,rgba(35,22,10,.18)); pointer-events:none; }
+    .detail-nav { position:absolute; z-index:2; left:14px; right:14px; top:max(14px, env(safe-area-inset-top)); display:flex; justify-content:space-between; align-items:center; }
+    .detail-nav-left { display:flex; align-items:center; gap:9px; }
+    .detail-nav-title { margin-left:3px; color:#fff; font-size:20px; font-weight:750; text-shadow:0 1px 7px rgba(0,0,0,.25); }
+    .detail-nav-group { display:flex; gap:8px; }
+    .glass-btn { display:grid; place-items:center; width:38px; height:38px; border-radius:50%; color:#fff; background:rgba(15,30,41,.40); border:1px solid rgba(255,255,255,.2); backdrop-filter:blur(8px); cursor:pointer; }
+    .glass-btn svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .hero-page-dot { position:absolute; z-index:2; bottom:14px; left:50%; width:22px; height:4px; transform:translateX(-50%); border-radius:6px; background:rgba(255,255,255,.96); box-shadow:0 1px 4px rgba(0,0,0,.25); }
+
+    .elder-summary-card { position:relative; z-index:2; margin-top:-18px; padding:18px 15px 6px; border-radius:20px 20px 0 0; background:#fff; }
+    .summary-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .summary-heading h1 { margin:0; color:#26180c; font-size:19px; line-height:1.18; letter-spacing:-.8px; }
+    .elder-grade { flex:none; display:grid; place-items:center; width:54px; height:54px; border-radius:15px; color:#fff; background:linear-gradient(145deg,#ff9b4d,#f05f26); box-shadow:0 6px 14px rgba(240,95,38,.28); font-size:18px; font-weight:800; }
+    .elder-grade small { display:block; font-size:8px; font-weight:600; letter-spacing:.2px; }
+    .rating-row { display:flex; align-items:center; gap:8px; margin-top:9px; color:#6d727a; font-size:12px; }
+    .stars { color:#ff8a2a; letter-spacing:1px; font-size:14px; }
+    .rating-row b { color:#2b2e33; font-size:15px; }
+    .price-per { margin-left:auto; color:#e0481e; font-size:13px; font-weight:750; }
+    .price-per small { color:#9a9ea5; font-size:10px; font-weight:500; }
+    .elder-tags { display:flex; gap:7px; overflow-x:auto; margin:13px 0 12px; padding-bottom:1px; scrollbar-width:none; }
+    .elder-tags::-webkit-scrollbar { display:none; }
+    .elder-tags span { flex:none; padding:6px 10px; border:1px solid #e7e1d9; color:#777d85; background:#fff; font-size:12px; white-space:nowrap; }
+    .elder-tags span:first-child { color:#e06a2e; border-color:#ffd9bd; background:#fff7ef; font-weight:650; }
+    .detail-info-row { display:flex; align-items:center; gap:10px; min-height:52px; border-top:1px solid #f2f0ec; color:#6d727a; }
+    .info-icon { flex:none; display:grid; place-items:center; width:30px; color:#f0783c; font-size:21px; }.address-icon { color:#4797ff; }
+    .detail-info-copy { min-width:0; flex:1; overflow:hidden; font-size:14px; white-space:nowrap; text-overflow:ellipsis; }.detail-info-copy b { color:#3d454e; font-weight:650; }
+    .detail-action { display:grid; place-items:center; gap:2px; width:46px; color:#24282d; background:transparent; font-size:10px; cursor:pointer; }.detail-action svg { width:20px; height:20px; fill:currentColor; stroke:currentColor; stroke-width:1.6; }
+    .comfort-row { display:flex; align-items:center; gap:7px; min-height:46px; margin:0 -15px; padding:0 15px; color:#70757d; border-top:8px solid #f7f5f1; font-size:12px; white-space:nowrap; overflow:hidden; }.comfort-label { flex:none; padding:3px 7px; color:#b46a1e; border-radius:5px; background:#ffefd9; font-weight:750; }
+
+    .promo-banner { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:12px 10px 0; padding:13px 14px; border-radius:14px; color:#7a3a10; background:linear-gradient(100deg,#fff3df,#ffe3c4); box-shadow:inset 0 0 0 1px #ffd9ae; font-size:13px; font-weight:650; }
+    .promo-banner button { flex:none; padding:7px 14px; border-radius:999px; color:#fff; background:linear-gradient(135deg,#ff8a3d,#f05f26); font-size:12px; font-weight:750; cursor:pointer; white-space:nowrap; }
+
+    .section-card { margin:12px 10px 0; padding:14px; border-radius:16px; background:#fff; box-shadow:0 4px 14px rgba(45,53,61,.035); }
+    .section-title-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }.section-title-row h2 { margin:0; color:#2b241b; font-size:18px; letter-spacing:-.5px; }.section-title-row span { color:#9a9ea5; font-size:11px; }
+
+    .plan-list { display:grid; gap:10px; }
+    .plan-card { display:grid; grid-template-columns:92px 1fr; gap:11px; padding:10px; border-radius:13px; background:#faf8f4; }
+    .plan-thumb { position:relative; width:92px; height:74px; overflow:hidden; border-radius:9px; background:#e9e2d8; }
+    .plan-thumb img { display:block; width:100%; height:100%; object-fit:cover; }
+    .plan-thumb span { position:absolute; left:0; top:0; padding:3px 6px; border-radius:0 0 8px 0; color:#fff; background:rgba(190,90,25,.85); font-size:9px; font-weight:700; }
+    .plan-copy { min-width:0; display:flex; flex-direction:column; justify-content:center; gap:5px; }
+    .plan-copy h3 { margin:0; color:#2b2118; font-size:14px; font-weight:700; line-height:1.35; }
+    .plan-copy p { margin:0; color:#a09a90; font-size:10px; line-height:1.4; }
+    .plan-copy p b { color:#e0702c; font-weight:750; }
+    .plan-row { display:flex; align-items:center; gap:6px; margin-top:1px; }
+    .plan-tag { padding:3px 7px; border-radius:6px; color:#4c8a5f; background:#e8f6ec; font-size:9px; font-weight:700; }
+    .plan-tag span { color:#4c8a5f; }
+    .plan-buy { margin:2px 0 0 auto; display:flex; align-items:baseline; gap:4px; color:#e9421e; font-size:16px; font-weight:800; white-space:nowrap; }
+    .plan-buy s { color:#b3aca2; font-size:9px; font-weight:500; }
+    .plan-buy b { color:#f0783c; font-size:9px; font-weight:700; }
+    .plan-buy button { margin-left:8px; padding:6px 11px; border-radius:13px; color:#fff; background:linear-gradient(135deg,#ff8a3d,#f05f26); font-size:10px; font-weight:750; cursor:pointer; white-space:nowrap; }
+    .plan-more { display:flex; align-items:center; justify-content:center; gap:4px; margin-top:11px; padding:9px; border-radius:11px; color:#9a938a; background:#faf7f2; font-size:11px; cursor:pointer; }
+
+    .facility-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .facility { margin:0; overflow:hidden; border-radius:14px; background:#faf8f4; }
+    .facility img { display:block; width:100%; height:92px; object-fit:cover; }
+    .facility figcaption { display:flex; align-items:center; min-height:30px; margin:0; padding:0 11px; color:#4a3b2e; font-size:12px; font-weight:650; text-align:left; }
+    .pay-note { display:flex; flex-direction:column; gap:4px; margin-top:12px; padding:11px 12px; border-radius:12px; background:#faf8f4; color:#8c7f6d; font-size:11px; line-height:1.5; }
+    .pay-note b { color:#6a5c48; font-weight:700; }
+
+    .brand-card { display:flex; align-items:center; gap:11px; padding:13px 0 2px; }
+    .brand-logo { flex:none; display:grid; place-items:center; width:44px; height:44px; border-radius:12px; color:#fff; background:linear-gradient(145deg,#ff9b4d,#ee6a2e); font-size:13px; font-weight:800; box-shadow:0 5px 12px rgba(240,95,38,.25); }
+    .brand-copy { min-width:0; flex:1; }
+    .brand-copy b { display:block; color:#2b2110; font-size:14px; }
+    .brand-copy span { display:block; margin-top:3px; color:#a09a90; font-size:10px; line-height:1.45; }
+    .brand-copy em { font-style:normal; }
+    .brand-links { flex:none; display:flex; flex-direction:column; gap:6px; }
+    .brand-links button { padding:5px 10px; border-radius:999px; color:#7a6a52; background:#f6f1e9; font-size:10px; cursor:pointer; white-space:nowrap; }
+
+    .service-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:9px 4px; }
+    .service-item { display:flex; flex-direction:column; align-items:center; gap:4px; color:#6d6152; font-size:10px; white-space:nowrap; }
+    .service-item .s-icon { display:grid; place-items:center; width:38px; height:38px; border-radius:12px; background:#fbf3e8; font-size:18px; }
+
+    .review-card { padding:12px 0; border-top:1px solid #f2efe9; }
+    .review-card:first-of-type { padding-top:2px; border-top:0; }
+    .review-head { display:flex; align-items:center; gap:8px; }
+    .review-avatar { display:grid; place-items:center; width:34px; height:34px; border-radius:50%; color:#fff; background:linear-gradient(145deg,#ffb26b,#f07a3a); font-size:13px; font-weight:800; }
+    .review-user { min-width:0; flex:1; }
+    .review-user b { display:block; color:#33291c; font-size:12px; }
+    .review-user span { display:block; margin-top:1px; color:#b3aca2; font-size:9px; }
+    .review-stars { color:#ff8a2a; font-size:12px; letter-spacing:1px; }
+    .review-title { margin:8px 0 4px; color:#2b2110; font-size:13px; font-weight:750; }
+    .review-body { margin:0; color:#6d6152; font-size:12px; line-height:1.7; }
+    .review-tags { display:flex; gap:5px; margin:9px 0 0; flex-wrap:wrap; }
+    .review-tags span { padding:4px 8px; border-radius:999px; color:#7a6a52; background:#f6f1e9; font-size:9px; font-weight:650; }
+
+    .feed-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+    .feed-card { overflow:hidden; border-radius:12px; background:#fff; }
+    .feed-card img { display:block; width:100%; height:108px; object-fit:cover; }
+    .feed-card p { display:-webkit-box; overflow:hidden; min-height:34px; margin:8px 9px 6px; -webkit-box-orient:vertical; -webkit-line-clamp:2; color:#383a3e; font-size:12px; line-height:1.4; }
+    .feed-card span { display:block; margin:0 9px 9px; color:#9a9fa6; font-size:10px; }
+
+    .detail-bottom { position:absolute; left:0; right:0; bottom:0; z-index:5; display:flex; align-items:center; gap:8px; padding:9px 14px max(9px, env(safe-area-inset-bottom)); background:rgba(255,255,255,.97); box-shadow:0 -6px 25px rgba(0,0,0,.08); backdrop-filter:blur(12px); }
+    .detail-bottom .minor { display:grid; place-items:center; width:48px; gap:2px; color:#6b6152; background:transparent; font-size:9px; cursor:pointer; }
+    .detail-bottom .minor svg { width:20px; height:20px; fill:none; stroke:#7a6a52; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+    .call-cta { flex:none; padding:12px 16px; border-radius:22px; color:#7a4315; background:#fff1e0; font-size:13px; font-weight:750; cursor:pointer; white-space:nowrap; }
+    .primary-cta { flex:1; padding:13px; border-radius:22px; color:#fff; background:linear-gradient(90deg,#ff842d,#f0451e); font-size:15px; font-weight:800; cursor:pointer; white-space:nowrap; }
+
+    .toast { position:absolute; z-index:20; left:50%; bottom:28px; max-width:80%; padding:10px 14px; border-radius:19px; color:#fff; background:rgba(20,22,25,.88); box-shadow:0 8px 20px rgba(0,0,0,.15); font-size:12px; opacity:0; transform:translate(-50%,10px); pointer-events:none; transition:.25s; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+
+    @media (min-width: 600px) {
+      body { padding:18px 0; background:radial-gradient(circle at 20% 0,#f3efdf,transparent 45%),#d9dadc; }
+      .app { height:calc(100dvh - 36px); border-radius:31px; }
+    }
+    @media (max-height: 720px) {
+      .topbar { height:76px; }
+      .wifi-card { padding:13px 16px; }
+      .bus-card { padding-top:14px; padding-bottom:14px; }
+      .route-track { height:100px; }
+      .section-heading-row { margin-top:15px; }
+      .query { min-height:48px; padding-top:11px; padding-bottom:11px; }
+    }
+    @media (max-width:360px) {
+      .elder-ad { padding:13px 13px 12px; }
+      .wifi-route-line { gap:3px; }
+      .wifi-route-tag { width:110px; height:17px; }
+      .wifi-connect { gap:5px; padding:9px 11px; font-size:14px; }
+      .wifi-connect img { width:19px; height:19px; }
+      .elder-name { font-size:21px; }
+      .elder-title-row { gap:8px; }
+      .elder-slogan { font-size:12px; }
+      .elder-benefits { gap:4px; }
+      .elder-benefits span { font-size:11px; }
+      .elder-price-now { font-size:22px; }
+      .elder-tags { gap:7px; font-size:10px; }
+      .service-grid { grid-template-columns:repeat(4,1fr); }
+      .plan-card { grid-template-columns:80px 1fr; }
+      .plan-thumb { width:80px; height:66px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="上海公交智能体（养老场景）商业化演示">
+
+    <section class="view active" id="homeView" aria-label="智能体首页">
+      <div class="ambient"></div>
+      <div class="scroll" id="homeScroll">
+        <header class="topbar">
+          <img class="avatar" src="assets/avatar.jpg" alt="上海公交智能体头像" />
+          <div class="agent-title"><strong>上海公交智能体</strong></div>
+          <div class="top-actions">
+            <button class="icon-btn" id="soundBtn" aria-label="播报开关" title="播报开关"><img src="assets/header-sound-icon.png" alt="" /></button>
+            <button class="icon-btn" id="moreBtn" aria-label="更多功能" title="更多功能"><img src="assets/header-capsule.png" alt="" /></button>
+          </div>
+        </header>
+
+        <div class="content">
+          <section class="wifi-card" aria-label="公交网络">
+            <div class="wifi-copy">
+              <div class="wifi-route-line">
+                <img class="wifi-route-tag" src="assets/wifi-route-label.png" alt="康泰之家·静安府" />
+                <strong>12路</strong>
+              </div>
+              <span>XiaoLuYou</span>
+            </div>
+            <button class="wifi-connect" id="wifiBtn">
+              <img src="assets/wifi-icon.png" alt="" />
+              <span>连接 WiFi</span>
+            </button>
+          </section>
+
+          <section class="bus-card" aria-label="12路公交实时信息">
+            <div class="route-top">
+              <div><div class="route-dest">开往 · 石板路</div><div class="route-next">下一站 <b>东浦站（约3分钟）</b></div></div>
+              <button class="remind-btn set" id="remindBtn">已设提醒</button>
+            </div>
+            <div class="route-track" aria-label="12路公交站点线路轴，可左右滑动查看更多站点">
+              <div class="route-viewport">
+                <div class="route-rail">
+                  <div class="route-line"></div>
+                  <span class="bus-emoji" aria-hidden="true">🚌</span>
+                  <div class="route-stop passed label-bottom" style="--x:30px"><span class="station-name">和平路</span></div>
+                  <div class="route-stop current label-top" style="--x:150px"><span class="current-tag">当前站</span><span class="station-name">中兴路</span></div>
+                  <div class="route-stop label-bottom" style="--x:270px"><span class="station-name">东浦路</span></div>
+                  <div class="route-stop label-top" style="--x:390px"><span class="station-name">东浦站</span></div>
+                  <div class="route-stop destination is-destination label-bottom" style="--x:510px"><span class="station-name">招呼站</span><span class="destination-tag">目的地</span></div>
+                  <div class="route-stop label-top" style="--x:630px"><span class="station-name">蔡伦路</span></div>
+                  <div class="route-stop label-bottom" style="--x:750px"><span class="station-name">石板路</span></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="elder-ad" id="elderAd" tabindex="0" role="button" aria-label="打开泰康之家·静安府养老机构详情">
+            <div class="elder-ad-head">
+              <div class="elder-brand-row">
+                <img class="elder-brand-mark" src="assets/elder-service-icon.png" alt="" aria-hidden="true" />
+                <span class="elder-brand-left">本地养老服务</span>
+                <img class="elder-brand-right" src="assets/elder-guard-plan.png" alt="银发守护计划" />
+              </div>
+            </div>
+            <div class="elder-ad-main">
+              <img class="elder-ad-thumb" src="assets/elderly-ad-thumb.png" alt="安心养老，从这开始" />
+              <div class="elder-ad-copy">
+                <h2 class="elder-name">泰康之家·静安府</h2>
+                <div class="elder-tags"><span>免费试住</span><span>支持医保</span><span>24h监护</span><span>失能照顾</span></div>
+                <div class="elder-offer">
+                  <span class="elder-learn">立即了解 ›</span>
+                  <b class="elder-price-now">¥1</b>
+                  <s class="elder-price-old">¥99</s>
+                  <em class="elder-price-cut">已减98</em>
+                  <span class="elder-offer-name">阿尔茨海默病 / 健忘症 / 痴呆症照护方案</span>
+                </div>
+              </div>
+            </div>
+            <div class="elder-foot">
+              <span class="elder-foot-note">可预约参观 · 免费体验</span>
+              <span class="elder-cta">查看详情&gt;</span>
+            </div>
+          </section>
+
+          <div class="section-heading-row">
+            <h2 class="section-kicker">在车上，问点有用的</h2>
+          </div>
+          <div class="query-list" id="queryList">
+            <button class="query query-elder" data-question="都在问「泰康之家·静安府」怎么样？" data-type="ad" aria-label="都在问泰康之家静安府怎么样，查看详情">
+              <span class="query-icon" aria-hidden="true">🏥</span><span class="query-text">都在问「泰康之家·静安府」怎么样？</span><span class="chev">›</span>
+            </button>
+            <button class="query query-landmark rotatable" data-question="沿途有什么值得看的地标" data-type="landmark">
+              <img class="query-icon" src="assets/icon-scenic.png" alt="景区" /><span class="query-text">沿途有什么值得看的地标</span><span class="chev">›</span>
+            </button>
+            <button class="query query-route rotatable" data-question="到火车站怎么换乘" data-type="route">
+              <img class="query-icon" src="assets/icon-transit.png" alt="出行" /><span class="query-text">到火车站怎么换乘</span><span class="chev">›</span>
+            </button>
+            <button class="query query-food rotatable" data-question="我的目的站有什么好吃的" data-type="food">
+              <img class="query-icon" src="assets/icon-food.png" alt="餐饮" /><span class="query-text">我的目的站有什么好吃的</span><span class="chev">›</span>
+            </button>
+          </div>
+          <div class="home-reply" id="homeReply" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="composer-wrap">
+        <form class="composer" id="homeComposer">
+          <button class="voice-btn" type="button" data-voice aria-label="语音输入"><img src="assets/voice-icon.png" alt="" /></button>
+          <input id="homeInput" autocomplete="off" placeholder="问路线、到站提醒或附近推荐" aria-label="向智能体提问" />
+        </form>
+      </div>
+    </section>
+
+    <section class="view" id="chatView" aria-label="智能体回复页">
+      <header class="chat-head">
+        <button class="back-btn" id="chatBack" aria-label="返回首页"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+        <img class="avatar" src="assets/avatar.jpg" alt="" />
+        <div class="chat-title"><strong>上海公交智能体</strong><span>结合实时公交为你回答</span></div>
+        <button class="icon-btn" id="chatSound" aria-label="播报"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15 9.5a4 4 0 0 1 0 5M18 7a7 7 0 0 1 0 10"/></svg></button>
+      </header>
+      <div class="scroll chat-scroll" id="chatScroll">
+        <section class="bus-card compact" aria-label="实时公交信息">
+          <div class="route-top">
+            <div><div class="route-dest">开往 · 石板路</div><div class="route-next">下一站 <b>东浦站（约3分钟）</b></div></div>
+            <button class="remind-btn set mini-remind">已设提醒</button>
+          </div>
+          <div class="route-track" aria-label="12路公交站点线路轴，可左右滑动查看更多站点">
+            <div class="route-viewport">
+              <div class="route-rail">
+                <div class="route-line"></div><span class="bus-emoji" aria-hidden="true">🚌</span>
+                <div class="route-stop passed label-bottom" style="--x:30px"><span class="station-name">和平路</span></div>
+                <div class="route-stop current label-top" style="--x:150px"><span class="current-tag">当前站</span><span class="station-name">中兴路</span></div>
+                <div class="route-stop label-bottom" style="--x:270px"><span class="station-name">东浦路</span></div>
+                <div class="route-stop label-top" style="--x:390px"><span class="station-name">东浦站</span></div>
+                <div class="route-stop destination is-destination label-bottom" style="--x:510px"><span class="station-name">招呼站</span><span class="destination-tag">目的地</span></div>
+                <div class="route-stop label-top" style="--x:630px"><span class="station-name">蔡伦路</span></div>
+                <div class="route-stop label-bottom" style="--x:750px"><span class="station-name">石板路</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <div id="conversation"></div>
+      </div>
+      <div class="composer-wrap">
+        <form class="composer" id="chatComposer">
+          <button class="voice-btn" type="button" data-voice aria-label="语音输入"><img src="assets/voice-icon.png" alt="" /></button>
+          <input id="chatInput" autocomplete="off" placeholder="继续问我，例如“附近哪有好的养老院”" aria-label="继续提问" />
+        </form>
+      </div>
+    </section>
+
+    <section class="view" id="detailView" aria-label="泰康之家·静安府养老机构详情">
+      <div class="scroll detail-scroll" id="detailScroll">
+        <section class="detail-hero">
+          <img class="detail-hero-image" src="assets/elderly-hero-detail.png" alt="泰康之家·静安府社区实景" />
+          <nav class="detail-nav" aria-label="养老机构详情操作">
+            <div class="detail-nav-left"><button class="glass-btn" id="detailBack" aria-label="返回智能体"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><span class="detail-nav-title">养老机构详情</span></div>
+            <div class="detail-nav-group">
+              <button class="glass-btn" id="favoriteBtn" aria-label="收藏"><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg></button>
+              <button class="glass-btn" data-toast="演示链接已复制" aria-label="分享"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="19" r="2"/><path d="m8 11 8-5M8 13l8 5"/></svg></button>
+            </div>
+          </nav>
+          <span class="hero-page-dot" aria-hidden="true"></span>
+        </section>
+
+        <section class="elder-summary-card">
+          <div class="summary-heading"><h1>泰康之家·静安府</h1><span class="elder-grade">4.8<small>分</small></span></div>
+          <div class="rating-row"><span class="stars">★★★★★</span><b>4.8</b><span>98条评价</span><span class="price-per">¥6111<small>/人 · 月起</small></span></div>
+          <div class="elder-tags"><span>收录2年</span><span>支持医保</span><span>600张床位</span><span>养老院/康养中心</span></div>
+          <div class="detail-info-row"><span class="info-icon" aria-hidden="true">◷</span><span class="detail-info-copy"><b>营业中</b> 09:00–18:00</span><button class="detail-action" data-toast="营业时间：每日 09:00–18:00，可预约参观" aria-label="查看营业说明">ⓘ</button><button class="detail-action" data-toast="拨号：400-168-8826" aria-label="电话"><svg viewBox="0 0 24 24"><path d="M6 3h4l2 5-3 2c1.6 3.3 2.7 4.4 6 6l2-3 5 2v4c0 1.1-.9 2-2 2C10.6 21 3 13.4 3 4c0-1.1.9-2 2-1z"/></svg>电话</button></div>
+          <div class="detail-info-row"><span class="info-icon address-icon" aria-hidden="true">●</span><span class="detail-info-copy"><b>静安区江场西路585号</b> · 驾车28.2km，需约40分钟</span><button class="detail-action" data-toast="正在规划路线" aria-label="导航"><svg viewBox="0 0 24 24"><path d="m4 10 15-6-6 16-3-7z"/><path d="m10 14 9-10"/></svg>导航</button></div>
+          <div class="comfort-row"><span class="comfort-label">💞 长者关怀</span><span>免费试住 · 上门评估 · 24h 接送 · 救护通道</span></div>
+        </section>
+
+        <section class="promo-banner" aria-label="预约礼遇"><span>🎁 预约礼赠 · 价值100元接待参观体验</span><button type="button" data-toast="已领取 100 元接待参观体验礼">领取 ›</button></section>
+
+        <section class="section-card">
+          <div class="section-title-row"><h2>照护方案</h2><span>5款定制 · 明码标价</span></div>
+          <div class="plan-list">
+            <article class="plan-card" data-toast="已选择 3天2晚试住体验 · ¥970">
+              <div class="plan-thumb"><img src="assets/elderly-garden.jpg" alt="静安府园景"><span>试住</span></div>
+              <div class="plan-copy">
+                <h3>【试住】静安府养老旅居体验 3天2晚</h3>
+                <p><b>【一居室】</b> · 双人陪同食宿 · 免预约</p>
+                <div class="plan-row"><span class="plan-tag">随时退</span><span class="plan-tag">全程陪护</span><span class="plan-buy">¥499 <s>¥980</s><b>5.1折</b><button>预订</button></span></div>
+              </div>
+            </article>
+            <article class="plan-card" data-toast="已选择 阿尔茨海默病照护方案咨询 · ¥99">
+              <div class="plan-thumb"><img src="assets/elderly-hall.jpg" alt="专业照护区"><span>照护</span></div>
+              <div class="plan-copy">
+                <h3>阿尔茨海默病/健忘症/痴呆症照护方案</h3>
+                <p>专职护理团队 · 记忆照护专区</p>
+                <div class="plan-row"><span class="plan-tag">免预约</span><span class="plan-buy">¥99<s>¥999</s><b>0.1折</b><button>咨询</button></span></div>
+              </div>
+            </article>
+            <article class="plan-card" data-toast="已选择 独立老人入住咨询 · ¥99">
+              <div class="plan-thumb"><img src="assets/elderly-library.jpg" alt="活力老人社区"><span>咨询</span></div>
+              <div class="plan-copy">
+                <h3>独立老人入住养老咨询【仅咨询】</h3>
+                <p>房型/费用/医保材料 1对1 答疑</p>
+                <div class="plan-row"><span class="plan-tag">私人订制</span><span class="plan-buy">¥99<s>¥999</s><b>0.1折</b><button>咨询</button></span></div>
+              </div>
+            </article>
+            <article class="plan-card" data-toast="已选择 自理能力费用评估 · ¥99">
+              <div class="plan-thumb"><img src="assets/elderly-dining.jpg" alt="营养膳食区"><span>评估</span></div>
+              <div class="plan-copy">
+                <h3>不自理 / 半自理 / 自理老人费用评估</h3>
+                <p>按护理等级测算月费，透明无隐藏</p>
+                <div class="plan-row"><span class="plan-tag">上门评估</span><span class="plan-buy">¥99<s>¥999</s><b>0.1折</b><button>咨询</button></span></div>
+              </div>
+            </article>
+            <article class="plan-card" data-toast="已选择 骨折卧床照护方案 · ¥99">
+              <div class="plan-thumb"><img src="assets/elderly-hall.jpg" alt="医养照护"><span>照护</span></div>
+              <div class="plan-copy">
+                <h3>骨折/卧床/术后康养照护方案</h3>
+                <p>康复训练 · 营养配餐 · 伤口护理</p>
+                <div class="plan-row"><span class="plan-tag">免预约</span><span class="plan-buy">¥99<s>¥999</s><b>0.1折</b><button>咨询</button></span></div>
+              </div>
+            </article>
+            <article class="plan-card" data-toast="已选择 中风瘫痪照护方案 · ¥99">
+              <div class="plan-thumb"><img src="assets/elderly-garden.jpg" alt="康复花园"><span>照护</span></div>
+              <div class="plan-copy">
+                <h3>中风/脑梗/瘫痪老人照护方案</h3>
+                <p>24h 专人照护 · 压疮防范 · 康复计划</p>
+                <div class="plan-row"><span class="plan-tag">免预约</span><span class="plan-buy">¥99<s>¥999</s><b>0.1折</b><button>咨询</button></span></div>
+              </div>
+            </article>
+          </div>
+          <button class="plan-more" type="button" data-toast="共 9 个在售照护方案">查看更多 3 个照护方案 ∨</button>
+        </section>
+
+        <section class="section-card">
+          <div class="section-title-row"><h2>房间与设施</h2><span>(10) 查看全部 ›</span></div>
+          <div class="facility-grid">
+            <figure class="facility"><img src="assets/elderly-hall.jpg" alt="活力中心效果图"><figcaption>活力中心</figcaption></figure>
+            <figure class="facility"><img src="assets/elderly-dining.jpg" alt="餐厅效果图"><figcaption>营养餐厅</figcaption></figure>
+            <figure class="facility"><img src="assets/elderly-library.jpg" alt="阅览室效果图"><figcaption>阅览室</figcaption></figure>
+            <figure class="facility"><img src="assets/elderly-garden.jpg" alt="空中花园效果图"><figcaption>空中花园</figcaption></figure>
+          </div>
+          <div class="pay-note"><b>缴费方式（明示）</b><span>① 押金 / 保险支付；② 押金 + 按月缴纳费用。支持医保结算与长护险抵扣。</span></div>
+        </section>
+
+        <section class="section-card">
+          <div class="brand-card">
+            <span class="brand-logo">泰康<br>之家</span>
+            <span class="brand-copy"><b>泰康之家养老社区（品牌）</b><span>生活照料 · 失能照料 · 失智照料 · 医养结合</span></span>
+            <span class="brand-links"><button type="button" data-toast="品牌介绍为演示内容">品牌介绍 ›</button><button type="button" data-toast="其他门店信息为演示内容">其他2家分店 ›</button></span>
+          </div>
+        </section>
+
+        <section class="section-card">
+          <div class="section-title-row"><h2>特色服务</h2><span>查看全部 ›</span></div>
+          <div class="service-grid">
+            <div class="service-item"><span class="s-icon">🍚</span>餐饮伙食</div>
+            <div class="service-item"><span class="s-icon">🥗</span>营养师配餐</div>
+            <div class="service-item"><span class="s-icon">🛎️</span>房间送餐</div>
+            <div class="service-item"><span class="s-icon">🍵</span>茶室</div>
+            <div class="service-item"><span class="s-icon">👩‍⚕️</span>专业护工</div>
+            <div class="service-item"><span class="s-icon">🕒</span>24h监护</div>
+            <div class="service-item"><span class="s-icon">🩺</span>慢病管理</div>
+            <div class="service-item"><span class="s-icon">📋</span>健康档案</div>
+            <div class="service-item"><span class="s-icon">💪</span>康复服务</div>
+            <div class="service-item"><span class="s-icon">💆</span>心理疏导</div>
+            <div class="service-item"><span class="s-icon">🎉</span>节日活动</div>
+            <div class="service-item"><span class="s-icon">🌿</span>郊游踏青</div>
+            <div class="service-item"><span class="s-icon">🎵</span>文娱活动</div>
+            <div class="service-item"><span class="s-icon">🎂</span>生日会</div>
+            <div class="service-item"><span class="s-icon">📖</span>精品课程</div>
+            <div class="service-item"><span class="s-icon">🧺</span>家务打扫</div>
+            <div class="service-item"><span class="s-icon">🚶</span>户外活动</div>
+            <div class="service-item"><span class="s-icon">🛡️</span>安心安保</div>
+            <div class="service-item"><span class="s-icon">✉️</span>亲情探望</div>
+            <div class="service-item"><span class="s-icon">🚑</span>救护通道</div>
+          </div>
+        </section>
+
+        <section class="section-card">
+          <div class="section-title-row"><h2>评价(98)</h2><span>查看全部 ›</span></div>
+          <div class="review-tags" style="margin-bottom:10px"><span>环境好 17</span><span>离家近 12</span><span>服务耐心细致 6</span><span>房间设计整洁 4</span><span>专业护理分区 4</span></div>
+          <article class="review-card">
+            <div class="review-head"><span class="review-avatar">美</span><div class="review-user"><b>美羊羊M</b><span>3月10日 · 到店参观</span></div><span class="review-stars">★★★★★</span></div>
+            <div class="review-title">不错，样板间采光很好</div>
+            <p class="review-body">今天与朋友参观了这家位于新静安的养老社区，规模不是很大，由一幢康养楼和一幢护理楼组成，今年初刚开业。环境很干净，样板间朝南采光好，护理区做了专门分区，整体很适合家里长辈。</p>
+          </article>
+          <article class="review-card">
+            <div class="review-head"><span class="review-avatar">晴</span><div class="review-user"><b>晴澜619</b><span>LV8 · 7月14日 · 到店参观</span></div><span class="review-stars">★★★★★</span></div>
+            <div class="review-title">超预期</div>
+            <p class="review-body">带爸妈来参观泰康之家·静安府，三栋楼环境都很好。参观了样板间和活动中心，工作人员非常耐心，还帮忙评估了费用方案，爸妈挺满意，先约了免费试住。</p>
+          </article>
+        </section>
+
+        <section class="section-card">
+          <div class="section-title-row"><h2>TA们的日常</h2><span>更多 ›</span></div>
+          <div class="feed-grid">
+            <article class="feed-card"><img src="assets/elderly-dining.jpg" alt="社区食堂"><p>社区食堂今日菜单：低盐少油，湘粤双拼，长辈都说合胃口</p><span>静安区 · 32赞</span></article>
+            <article class="feed-card"><img src="assets/elderly-library.jpg" alt="银发阅读角"><p>午后读书会，银发阅读角上新，一起慢慢读一本书</p><span>静安区 · 21赞</span></article>
+          </div>
+        </section>
+      </div>
+
+      <div class="detail-bottom">
+        <button class="minor" type="button" data-toast="已接入养老顾问，当前排队约1人" aria-label="在线咨询"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg>在线咨询</button>
+        <button class="minor" type="button" data-toast="已为你记录到店打卡" aria-label="打卡"><svg viewBox="0 0 24 24"><path d="m9 11 2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>打卡</button>
+        <button class="minor" type="button" data-toast="写评价为演示功能" aria-label="写评价"><svg viewBox="0 0 24 24"><path d="m5 16 11-11 3 3L8 19l-4 1z"/></svg>写评价</button>
+        <button class="call-cta" type="button" data-toast="拨号：400-168-8826">电话咨询</button>
+        <button class="primary-cta" type="button" id="bookBtn">预约参观</button>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+      const $ = (s, root = document) => root.querySelector(s);
+      const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+      const homeView = $('#homeView');
+      const chatView = $('#chatView');
+      const detailView = $('#detailView');
+      const chatScroll = $('#chatScroll');
+      const conversation = $('#conversation');
+      const homeScroll = $('#homeScroll');
+      const homeReply = $('#homeReply');
+      const toast = $('#toast');
+      let activeView = homeView;
+      let soundOn = false;
+      let answerTimer = null;
+      let toastTimer = null;
+
+      const escapeHTML = (value) => String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+      function showView(next, direction = 'forward') {
+        if (next === activeView) return;
+        const prev = activeView;
+        if (direction === 'back') next.style.transform = 'translateX(-18px)';
+        next.classList.add('active');
+        requestAnimationFrame(() => { next.style.transform = ''; prev.classList.add('leaving'); });
+        setTimeout(() => { prev.classList.remove('active', 'leaving'); activeView = next; }, 300);
+      }
+
+      function showToast(message) {
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 1900);
+      }
+
+      function scrollChat() {
+        requestAnimationFrame(() => chatScroll.scrollTo({ top: chatScroll.scrollHeight, behavior: 'smooth' }));
+      }
+
+      const queryPool = [
+        { q:'沿途有什么值得看的地标', type:'landmark', icon:'assets/icon-scenic.png', alt:'景区', cls:'query-landmark' },
+        { q:'到火车站怎么换乘', type:'route', icon:'assets/icon-transit.png', alt:'出行', cls:'query-route' },
+        { q:'我的目的站有什么好吃的', type:'food', icon:'assets/icon-food.png', alt:'餐饮', cls:'query-food' },
+        { q:'这趟车还有多久到招呼站', type:'arrival', icon:'assets/icon-transit.png', alt:'出行', cls:'query-route' },
+        { q:'12路末班车是几点', type:'schedule', icon:'assets/icon-transit.png', alt:'出行', cls:'query-route' },
+        { q:'到站前提醒我下车', type:'reminder', icon:'assets/icon-transit.png', alt:'出行', cls:'query-route' },
+        { q:'现在车上拥挤吗', type:'crowd', icon:'assets/icon-transit.png', alt:'出行', cls:'query-route' },
+        { q:'坐这趟车要多少钱', type:'fare', icon:'assets/icon-transit.png', alt:'出行', cls:'query-route' }
+      ];
+      let rotateOffset = 0;
+
+      function bindQuery(button) {
+        button.onclick = () => {
+          ask(button.dataset.question, button.dataset.type);
+        };
+      }
+      $$('.query').forEach(bindQuery);
+      const elderAd = $('#elderAd');
+      if (elderAd) {
+        elderAd.onclick = openDetail;
+        elderAd.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') openDetail(); };
+      }
+
+      function rotateQueries() {
+        if (activeView !== homeView || document.hidden) return;
+        const slots = $$('.rotatable');
+        slots.forEach(el => el.classList.add('rotating-out'));
+        setTimeout(() => {
+          rotateOffset = (rotateOffset + 1) % queryPool.length;
+          slots.forEach((el, i) => {
+            const item = queryPool[(rotateOffset + i) % queryPool.length];
+            el.className = `query rotatable ${item.cls} rotating-out`;
+            el.dataset.question = item.q;
+            el.dataset.type = item.type;
+            const icon = $('.query-icon', el);
+            icon.src = item.icon;
+            icon.alt = item.alt;
+            $('.query-text', el).textContent = item.q;
+          });
+          requestAnimationFrame(() => slots.forEach(el => el.classList.remove('rotating-out')));
+        }, 260);
+      }
+      setInterval(rotateQueries, 3800);
+
+      const answers = {
+        landmark: { title:'沿途地标推荐', body:'12路沿途可看到神农城炎帝文化主题公园、株洲博物馆和湘江风光带。若在招呼站下车，步行约12分钟可到株洲方特欢乐世界。', chip:'🚌 建议招呼站下车' },
+        route: { title:'去株洲火车站这样换乘', body:'在东浦站下车后步行约180米，到"东浦路口"站换乘T2路，预计28分钟到株洲火车站。当前道路畅通，建议预留8分钟换乘时间。', chip:'全程约38分钟 · ¥2' },
+        food: { title:'目的站附近美食', body:'招呼站附近1公里内有攸县香干、醴陵炒粉和株洲什锦菜，多为低油低盐的本地口味，适合陪同长辈出行的家常选择。', chip:'查看3家附近餐厅 ›' },
+        arrival: { title:'预计3分钟到站', body:'车辆已驶过中兴路，距离东浦站约620米。按当前车速，约3分钟抵达；到招呼站预计还需9分钟。', chip:'已开启实时刷新' },
+        schedule: { title:'12路运营时间', body:'开往石板路方向首班06:20、末班21:30；工作日高峰约8–12分钟一班，平峰约15分钟一班。', chip:'末班车还有2小时15分' },
+        reminder: { title:'到站提醒已设置', body:'将在抵达招呼站前1站，通过声音和震动提醒你。当前预计还有9分钟，请留意随身物品。', chip:'✓ 招呼站 · 提前1站提醒' },
+        crowd: { title:'当前舒适不拥挤', body:'车内预计还有约12个座位，拥挤度为"舒适"。下一站预计有6人上车、3人下车，可安心乘坐。', chip:'舒适度 78%' },
+        fare: { title:'本次乘车票价 ¥2', body:'株洲12路实行一票制，普通卡与敬老卡的刷卡方式一致，支持交通卡、乘车码和现金。', chip:'支持扫码乘车' },
+        default: { title:'我来帮你看看', body:'这是商业演示中的模拟回答。你可以问我实时到站、公交换乘、沿途养老机构，或直接输入"泰康之家·静安府"查看详情。', chip:'试试：泰康之家怎么样' }
+      };
+
+      function elderlyCenterCard() {
+        return `
+          <article class="answer-card" id="attractionCard" tabindex="0" role="button" aria-label="查看泰康之家·静安府养老机构详情">
+            <div class="attraction-top">
+              <div class="rank-img"><img src="assets/elderly-reply-thumb.png" alt="泰康之家·静安府社区实景"></div>
+              <div class="ad-copy">
+                <div class="query-text">泰康之家·静安府 <span class="ad-grade">4.8分</span></div>
+                <div class="ad-meta"><span class="ad-score">🏥 收录2年</span><span class="ad-category">养老院 · 康养中心</span></div>
+                <div class="ad-facts"><span class="ad-fact">◷ 营业中 09:00–18:00</span><span class="ad-fact">🛏 600张床位 · 可免费试住</span></div>
+                <div class="ad-tickets"><div class="ad-ticket"><strong class="ad-price-now">¥970</strong><s class="ad-price-old">¥1078</s><span class="ad-ticket-name">【试住】3天2晚 双人一居室</span><span class="ad-refund">随时退·免预约</span></div><div class="ad-ticket"><strong class="ad-price-now">¥99</strong><s class="ad-price-old">¥999</s><span class="ad-ticket-name">老人照护方案·定制咨询</span><span class="ad-refund">私人订制</span></div></div>
+              </div><span class="arrow-circle" aria-hidden="true">›</span>
+            </div>
+            <div class="answer-intro">
+              <h3>机构介绍</h3>
+              <p>泰康之家·静安府，医养结合的高端养老社区：专业照护、健康管理与营养配餐一站式服务，支持医保与长护险。可免费预约试住、上门评估，为长辈安心养老提供全链路方案。</p>
+              <div class="gallery"><img src="assets/elderly-garden.jpg" alt="空中花园实景"><img src="assets/elderly-dining.jpg" alt="营养餐厅实景"></div>
+            </div>
+            <button type="button" class="answer-detail-link" id="attractionDetailBtn">查看详情 ›</button>
+          </article>`;
+      }
+
+      function textAnswer(type) {
+        const a = answers[type] || answers.default;
+        return `<div class="text-answer"><h3>${escapeHTML(a.title)}</h3><div>${escapeHTML(a.body)}</div><span class="answer-chip">${escapeHTML(a.chip)}</span></div>
+          <div class="followups"><button data-follow="arrival">还有多久到站</button><button data-follow="reminder">设置下车提醒</button><button data-follow="ad">泰康之家怎么样</button></div>`;
+      }
+
+      function bindAttractionCard(root) {
+        const attraction = $('#attractionCard', root);
+        if (!attraction) return;
+        attraction.onclick = openDetail;
+        attraction.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') openDetail(); };
+        const detailBtn = $('#attractionDetailBtn', root);
+        if (detailBtn) detailBtn.onclick = e => { e.stopPropagation(); openDetail(); };
+      }
+
+      function bindHomeFollowups(root) {
+        $$('[data-follow]', root).forEach(btn => btn.onclick = () => {
+          const t = btn.dataset.follow;
+          if (t === 'ad') ask('泰康之家·静安府怎么样', 'ad');
+          else {
+            const poolItem = queryPool.find(x => x.type === t);
+            ask(poolItem ? poolItem.q : btn.textContent, t);
+          }
+        });
+      }
+
+      function showHomeReply(question, type) {
+        homeView.classList.add('reply-mode');
+        homeReply.innerHTML = `<div class="user-msg"><div class="user-bubble">${escapeHTML(question)}</div></div>
+          <div class="home-scroll-card"><div class="typing" aria-label="正在回复"><i></i><i></i><i></i></div></div>`;
+        requestAnimationFrame(() => homeScroll.scrollTo({ top: homeScroll.scrollHeight, behavior:'smooth' }));
+        answerTimer = setTimeout(() => {
+          const answer = type === 'ad' ? elderlyCenterCard() : textAnswer(type);
+          homeReply.innerHTML = `<div class="user-msg"><div class="user-bubble">${escapeHTML(question)}</div></div><div class="home-scroll-card">${answer}</div>`;
+          bindAttractionCard(homeReply);
+          bindHomeFollowups(homeReply);
+          requestAnimationFrame(() => homeScroll.scrollTo({ top: homeScroll.scrollHeight, behavior:'smooth' }));
+          if (soundOn && 'speechSynthesis' in window) {
+            speechSynthesis.cancel();
+            const spoken = type === 'ad' ? '为你推荐泰康之家·静安府，点击养老机构卡片可以查看详情与预约参观。' : (answers[type] || answers.default).body;
+            speechSynthesis.speak(new SpeechSynthesisUtterance(spoken));
+          }
+        }, type === 'ad' ? 520 : 420);
+      }
+
+      function ask(question, type = 'default') {
+        clearTimeout(answerTimer);
+        if (type === 'reminder') setReminder(true);
+        if (activeView !== homeView) showView(homeView, 'back');
+        showHomeReply(question, type);
+      }
+
+      function openDetail() {
+        if (activeView === detailView) return;
+        $('#detailScroll').scrollTop = 0;
+        showView(detailView);
+      }
+
+      function setReminder(enabled) {
+        $$('.remind-btn').forEach(btn => {
+          btn.classList.toggle('set', enabled);
+          btn.textContent = enabled ? '已设提醒' : '设置提醒';
+        });
+        $$('.route-stop.destination').forEach(stop => stop.classList.toggle('is-destination', enabled));
+        if (enabled) requestAnimationFrame(() => {
+          $$('.route-viewport').forEach(viewport => {
+            const destination = $('.route-stop.destination', viewport);
+            if (!destination) return;
+            const target = destination.offsetLeft - (viewport.clientWidth - destination.offsetWidth) / 2;
+            viewport.scrollTo({ left:Math.max(0, target), behavior:'smooth' });
+          });
+        });
+      }
+      $$('.remind-btn').forEach(btn => btn.onclick = () => {
+        const enabled = !btn.classList.contains('set');
+        setReminder(enabled);
+        showToast(enabled ? '已设置招呼站到站提醒' : '已取消到站提醒');
+      });
+      requestAnimationFrame(() => setReminder(!!$('#remindBtn')?.classList.contains('set')));
+
+      $('#wifiBtn').onclick = e => {
+        const btn = e.currentTarget;
+        const on = btn.classList.toggle('connected');
+        $('span', btn).textContent = on ? '已连接' : '连接 WiFi';
+        showToast(on ? '已连接 ZHUZHOU-BUS WiFi' : 'WiFi 已断开');
+      };
+
+      function toggleSound(btn) {
+        soundOn = !soundOn;
+        $$('#soundBtn, #chatSound').forEach(x => x.classList.toggle('active', soundOn));
+        showToast(soundOn ? '语音播报已开启' : '语音播报已关闭');
+        if (!soundOn && 'speechSynthesis' in window) speechSynthesis.cancel();
+      }
+      $('#soundBtn').onclick = e => toggleSound(e.currentTarget);
+      $('#chatSound').onclick = e => toggleSound(e.currentTarget);
+      $('#moreBtn').onclick = () => showToast('支持线路、养老机构、美食与到站提醒');
+      $('#chatBack').onclick = () => showView(homeView, 'back');
+      $('#detailBack').onclick = () => showView(homeView, 'back');
+      $('#bookBtn').onclick = () => showToast('已提交预约参观，养老顾问将尽快与您联系');
+
+      function bindComposer(form, input) {
+        form.addEventListener('submit', e => {
+          e.preventDefault();
+          const value = input.value.trim();
+          if (!value) { input.focus(); return; }
+          input.value = '';
+          const low = value.toLowerCase();
+          let type = 'default';
+          if (value.includes('泰康') || value.includes('静安府') || value.includes('养老') || value.includes('照护') || value.includes('试住')) type = 'ad';
+          else if (value.includes('多久') || value.includes('到站')) type = 'arrival';
+          else if (value.includes('提醒')) type = 'reminder';
+          else if (value.includes('末班') || value.includes('几点')) type = 'schedule';
+          else if (value.includes('换乘') || value.includes('火车站')) type = 'route';
+          else if (value.includes('吃') || value.includes('美食')) type = 'food';
+          else if (value.includes('拥挤') || value.includes('人多')) type = 'crowd';
+          else if (value.includes('票价') || value.includes('多少钱')) type = 'fare';
+          ask(value, type);
+        });
+      }
+      bindComposer($('#homeComposer'), $('#homeInput'));
+      bindComposer($('#chatComposer'), $('#chatInput'));
+
+      $$('[data-voice]').forEach(btn => btn.onclick = () => {
+        const form = btn.closest('form');
+        const input = $('input', form);
+        btn.classList.add('listening');
+        input.placeholder = '正在聆听…';
+        setTimeout(() => {
+          btn.classList.remove('listening');
+          input.value = '泰康之家·静安府怎么样';
+          input.placeholder = form.id === 'homeComposer' ? '问路线、到站提醒或附近推荐' : '继续问我，例如"如何找养老院"';
+          showToast('已识别：泰康之家·静安府怎么样');
+        }, 1050);
+      });
+
+      $$('[data-toast]').forEach(el => el.onclick = () => showToast(el.dataset.toast));
+
+      let favorite = false;
+      function toggleFavorite() {
+        favorite = !favorite;
+        const button = $('#favoriteBtn');
+        if (button) button.style.color = favorite ? '#ffdf36' : '';
+        showToast(favorite ? '已收藏泰康之家·静安府' : '已取消收藏');
+      }
+      const favoriteBtn = $('#favoriteBtn');
+      if (favoriteBtn) favoriteBtn.onclick = toggleFavorite;
+
+      window.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if (activeView === detailView) showView(chatView, 'back');
+        else if (activeView === chatView) showView(homeView, 'back');
+      });
+    })();
+  </script>
+</body>
+</html>

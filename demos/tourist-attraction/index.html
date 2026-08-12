@@ -192,15 +192,100 @@
     .query-icon { flex:none; display:block; width:25px; height:25px; object-fit:contain; }
     .query-text { flex:0 1 auto; min-width:0; font-size:15px; font-weight:650; line-height:1.34; }
     .chev { flex:none; margin-left:1px; font-size:22px; line-height:1; color:#727272; font-weight:300; }
-    .ad-query { align-items:flex-start; width:fit-content; max-width:100%; min-height:102px; padding:14px 15px 13px; overflow:hidden; border:1px solid rgba(125,81,255,.08); }
-    .ad-query::before { content:""; position:absolute; right:-35px; top:-40px; width:125px; height:125px; border-radius:50%; background:radial-gradient(circle,rgba(188,46,234,.13),transparent 68%); }
-    .ad-query .query-icon { width:25px; height:25px; margin-top:1px; }
-    .ad-copy { flex:1; min-width:0; max-width:258px; }
-    .ad-copy .query-text { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; background:linear-gradient(90deg,#5a5cff,#c128d5); -webkit-background-clip:text; background-clip:text; color:transparent; }
-    .ad-meta { display:flex; align-items:center; gap:7px; margin-top:7px; font-size:11px; color:#747474; white-space:nowrap; }
-    .ad-meta b { color:#a56500; font-size:12px; }
-    .ad-badge { margin-left:auto; padding:2px 6px; color:#9b9b9b; border:1px solid #ddd; border-radius:4px; font-size:9px; font-weight:500; }
+    /* Scenic recommendation cards share one visual system across home and chat. */
+    .ad-query,
+    .answer-card {
+      border-radius:20px;
+      border:1px solid rgba(36,52,75,.06);
+      box-shadow:0 8px 24px rgba(40,48,58,.08), 0 2px 6px rgba(40,48,58,.04);
+      transition:transform .2s ease, box-shadow .2s ease;
+    }
+    .ad-query {
+      align-items:stretch;
+      width:100%;
+      min-height:0;
+      padding:0;
+      overflow:hidden;
+      text-align:left;
+    }
+    .ad-query:focus-visible,
+    .answer-card:focus-visible { outline:3px solid rgba(22,119,255,.28); outline-offset:3px; }
+    .ad-query::before { display:none; }
+    .ad-query .query-icon { display:none; }
+    .ad-image-wrap { position:relative; flex:none; width:94px; min-height:126px; overflow:hidden; border-radius:20px 0 0 20px; }
+    .rank-img { position:relative; min-height:126px; overflow:hidden; border-radius:16px; }
+    .ad-image-wrap::after,
+    .rank-img::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(12,35,57,.12)); }
+    .ad-image-wrap img,
+    .rank-img img { display:block; width:100%; height:100%; object-fit:cover; filter:saturate(.94) contrast(1.02); transition:transform .28s ease, filter .28s ease; }
+    .ad-copy,
+    .attraction-info { position:relative; display:flex; flex:1; min-width:0; flex-direction:column; justify-content:center; gap:7px; padding:12px 50px 12px 14px; }
+    .ad-copy .query-text,
+    .attraction-name { display:flex; align-items:center; flex-wrap:wrap; gap:6px; overflow:visible; background:none; color:#09213b; font-size:16px; font-weight:720; line-height:1.25; letter-spacing:-.3px; }
+    .ad-grade,
+    .grade { display:inline-flex; align-items:center; flex:none; margin-left:0; padding:3px 6px; vertical-align:0; border-radius:6px; background:#eef3ef; color:#66716b; font-size:10px; font-weight:600; letter-spacing:0; }
+    .ad-meta,
+    .hot-row { display:flex; align-items:center; flex-wrap:nowrap; min-width:0; gap:6px; margin-top:0; color:#7b8793; font-size:11px; line-height:1.25; }
+    .ad-category,
+    .hot-category { display:inline-flex; align-items:center; min-height:0; min-width:0; max-width:100%; padding:0; border-radius:0; color:#788490; background:none; font-size:10px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ad-meta .ad-category,
+    .hot-row .hot-category { flex:1 1 auto; }
+    .ad-score,
+    .heat { display:inline-flex; align-items:center; flex:none; gap:2px; min-height:20px; padding:3px 6px; border-radius:7px; background:#fff5b8; color:#202020; font-size:12px; line-height:1; font-weight:750; white-space:nowrap; box-shadow:inset 0 0 0 1px rgba(255,194,44,.12); }
+    .ad-good { display:inline-flex; align-items:center; flex:none; margin-left:0; padding:0; color:#4c72c8; background:none; box-shadow:none; font-size:11px; font-style:normal; font-weight:650; line-height:1.2; white-space:nowrap; }
+    .ad-facts,
+    .facts { display:grid; gap:4px; margin-top:0; color:#8894a0; font-size:11px; line-height:1.2; }
+    .ad-fact { display:block; }
+    .ad-tickets { display:grid; gap:4px; min-width:0; margin-top:0; }
+    .ad-ticket { display:grid; grid-template-columns:auto auto minmax(0,1fr) auto; align-items:baseline; min-width:0; gap:5px; overflow:hidden; white-space:nowrap; line-height:1.15; }
+    .ad-price-now { flex:none; color:#ff5a48; font-size:18px; font-weight:400; letter-spacing:-.3px; }
+    .ad-price-old { flex:none; color:#a6a6a6; font-size:10px; }
+    .ad-ticket-name { min-width:0; overflow:hidden; text-overflow:ellipsis; color:#202124; font-size:11px; font-weight:650; }
+    .ad-refund { min-width:0; max-width:72px; overflow:hidden; text-overflow:ellipsis; color:#f06b32; font-size:10px; font-weight:650; }
+    .ad-badge { position:absolute; right:10px; top:10px; padding:2px 5px; color:#9b9b9b; border:1px solid #ddd; border-radius:4px; font-size:9px; font-weight:500; }
+    .ad-query .chev,
+    .arrow-circle { display:grid; place-items:center; width:27px; height:27px; border-radius:50%; background:#eef2f8; color:#8392af; font-size:20px; font-weight:300; line-height:1; }
+    .ad-query .chev { position:absolute; right:12px; top:12px; margin:0; }
+    .ad-query .ad-meta + .ad-facts { padding-right:0; }
+    .answer-card { overflow:hidden; }
+    .attraction-top { display:grid; grid-template-columns:94px 1fr; gap:12px; padding:12px; }
+    .arrow-circle { position:absolute; right:12px; top:12px; }
+    .answer-intro { position:relative; padding:0 14px 15px; }
+    .answer-intro h3 { margin:10px 0 8px; color:#09213b; font-size:16px; }
+    .answer-intro p { margin:0; color:#203850; font-size:12px; line-height:1.78; }
+    .gallery { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:12px; }
+    .gallery img { width:100%; height:92px; border-radius:10px; object-fit:cover; }
+    .click-hint { display:flex; align-items:center; justify-content:center; gap:5px; padding:9px; color:#6f7f90; border-top:1px solid #f0f1f2; font-size:10px; }
+    .click-hint b { color:#405eff; }
+    .answer-card:active,
+    .ad-query:active { transform:scale(.985); box-shadow:0 5px 14px rgba(40,48,58,.08); }
+    .ad-query:hover,
+    .answer-card:hover { box-shadow:0 12px 30px rgba(40,48,58,.11), 0 3px 8px rgba(40,48,58,.05); }
+    .ad-query:hover .ad-image-wrap img,
+    .answer-card:hover .rank-img img,
+    .ad-query:active .ad-image-wrap img,
+    .answer-card:active .rank-img img { transform:scale(1.035); filter:saturate(1) contrast(1.04); }
     .rotating-out { opacity:.15; transform:translateY(-4px); }
+    @media (max-width:360px) {
+      .ad-copy { gap:6px; padding:11px 46px 11px 12px; }
+      .attraction-info { gap:6px; padding:11px 46px 11px 12px; }
+      .ad-copy .query-text,
+      .attraction-name { font-size:15px; }
+      .ad-meta,
+      .hot-row { gap:5px; font-size:10px; }
+      .ad-score,
+      .heat { min-height:19px; padding:3px 6px; font-size:11px; }
+      .ad-category,
+      .hot-category { font-size:10px; }
+      .ad-facts,
+      .facts { gap:3px; font-size:10px; }
+      .ad-tickets { gap:3px; }
+      .ad-ticket { grid-template-columns:auto auto minmax(0,1fr) auto; gap:4px; }
+      .ad-price-now { font-size:17px; }
+      .ad-price-old { font-size:10px; }
+      .ad-ticket-name { font-size:10px; }
+      .ad-refund { max-width:66px; font-size:9px; }
+    }
 
     .composer-wrap { position:absolute; left:0; right:0; bottom:0; z-index:5; padding:12px 14px var(--safe-bottom); background:linear-gradient(180deg,rgba(245,243,239,0),rgba(245,243,239,.96) 26%,#f5f3ef 55%); }
     .composer { display:flex; align-items:center; gap:9px; height:56px; padding:6px 14px 6px 9px; border-radius:29px; background:#fff; box-shadow:0 11px 30px rgba(0,0,0,.10); }
@@ -231,19 +316,7 @@
     .typing i { width:6px; height:6px; border-radius:50%; background:#aaa; animation:typing 1s infinite; }
     .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
     @keyframes typing { 0%,65%,100%{transform:translateY(0);opacity:.5} 32%{transform:translateY(-4px);opacity:1} }
-    .answer-card { position:relative; border-radius:7px 21px 21px 21px; overflow:hidden; cursor:pointer; border:1px solid rgba(0,0,0,.025); transition:transform .2s ease; }
-    .answer-card:active { transform:scale(.99); }
-    .attraction-top { display:grid; grid-template-columns:94px 1fr; gap:12px; padding:12px; }
-    .rank-img { position:relative; min-height:126px; overflow:hidden; border-radius:14px; }
-    .rank-img img { width:100%; height:100%; object-fit:cover; }
-    .rank { position:absolute; left:0; top:0; padding:5px 8px; border-radius:0 0 10px 0; background:#b9ff2c; color:#152000; font-size:10px; font-weight:800; }
-    .attraction-info { min-width:0; padding-top:1px; }
-    .attraction-name { display:flex; align-items:center; gap:6px; font-size:17px; font-weight:720; color:#09213b; letter-spacing:-.3px; }
-    .grade { flex:none; padding:2px 5px; border-radius:5px; background:#eef3ef; color:#66716b; font-size:10px; font-weight:600; }
-    .hot-row { display:flex; align-items:center; gap:7px; margin:10px 0; color:#7b8793; font-size:11px; }
-    .heat { padding:4px 7px; border-radius:7px; color:#202020; background:#fff8be; font-weight:700; }
-    .facts { display:grid; gap:5px; color:#8894a0; font-size:11px; line-height:1.3; }
-    .arrow-circle { position:absolute; right:14px; top:14px; display:grid; place-items:center; width:34px; height:34px; border-radius:50%; background:#eef2f8; color:#8392af; }
+    .answer-card { position:relative; cursor:pointer; }
     .answer-intro { position:relative; padding:0 14px 15px; }
     .answer-intro h3 { margin:10px 0 8px; color:#09213b; font-size:16px; }
     .answer-intro p { margin:0; color:#203850; font-size:12px; line-height:1.78; }
@@ -447,13 +520,15 @@
             <h2 class="section-kicker">坐在车上，问点有用的</h2>
           </div>
           <div class="query-list" id="queryList">
-            <button class="query ad-query" data-question="株洲方特欢乐世界" data-type="ad" aria-label="推广：株洲人气景点第一，六十万平方米的快乐，一天根本不够玩">
-              <img class="query-icon" src="assets/icon-scenic.png" alt="景区" />
+            <button class="query ad-query" data-question="株洲方特欢乐世界" data-type="ad" aria-label="打开株洲方特欢乐世界景区详情">
+              <span class="ad-image-wrap"><img src="assets/fangte-attraction.png" alt="株洲方特欢乐世界航拍图" /></span>
               <span class="ad-copy">
-                <span class="query-text">株洲人气景点No.1，600000㎡<br>的快乐，一天根本不够玩</span>
-                <span class="ad-meta"><b>株洲方特欢乐世界</b><span>距离1.1公里 · 营业中</span><span class="ad-badge">推广</span></span>
+                <span class="query-text">株洲方特欢乐世界 <span class="ad-grade">4A</span></span>
+                <span class="ad-meta"><span class="ad-score">🔥 6.6</span><span class="ad-category">主题项目 · 游乐项目</span></span>
+                <span class="ad-facts"><span class="ad-fact">◷ 营业时间：8:30–18:30</span></span>
+                <span class="ad-tickets"><span class="ad-ticket"><strong class="ad-price-now">¥159</strong><s class="ad-price-old">¥299</s><span class="ad-ticket-name">【单人】门票</span><span class="ad-refund">随时退·过期退</span></span><span class="ad-ticket"><strong class="ad-price-now">¥69</strong><s class="ad-price-old">¥199</s><span class="ad-ticket-name">【单人】夜场门票</span><span class="ad-refund">随时退·过期退</span></span></span>
               </span>
-              <span class="chev">›</span>
+              <span class="chev" aria-hidden="true">›</span>
             </button>
             <button class="query query-landmark rotatable" data-question="沿途有什么值得看的地标" data-type="landmark">
               <img class="query-icon" src="assets/icon-scenic.png" alt="景区" /><span class="query-text">沿途有什么值得看的地标</span><span class="chev">›</span>
@@ -548,7 +623,7 @@
         </section>
 
         <section class="section-card"><div class="section-title-row"><h2>园内项目</h2><span>查看全部 ›</span></div><div class="project-list">
-          <article class="project-card" data-toast="飞越极限项目介绍"><img src="assets/fangte-aerial.jpg" alt="飞越极限项目"><div><h3>飞越极限</h3><p>沉浸式球幕体验 · 适合全家</p></div><span>›</span></article>
+          <article class="project-card" data-toast="飞越极限项目介绍"><img src="assets/fangte-aerial-clean.jpg" alt="飞越极限项目"><div><h3>飞越极限</h3><p>沉浸式球幕体验 · 适合全家</p></div><span>›</span></article>
           <article class="project-card" data-toast="火山探险项目介绍"><img src="assets/fangte-volcano.jpg" alt="火山探险项目"><div><h3>火山探险</h3><p>刺激过山车 · 建议提前排队</p></div><span>›</span></article>
         </div></section>
 
@@ -616,7 +691,13 @@
       let rotateOffset = 0;
 
       function bindQuery(button) {
-        button.onclick = () => ask(button.dataset.question, button.dataset.type);
+        button.onclick = () => {
+          if (button.dataset.type === 'ad') {
+            openDetail();
+            return;
+          }
+          ask(button.dataset.question, button.dataset.type);
+        };
       }
       $$('.query').forEach(bindQuery);
 
@@ -657,12 +738,13 @@
         return `
           <article class="answer-card" id="attractionCard" tabindex="0" role="button" aria-label="查看株洲方特欢乐世界商户详情">
             <div class="attraction-top">
-              <div class="rank-img"><img src="assets/fangte-aerial.jpg" alt="株洲方特欢乐世界航拍图"><span class="rank">TOP 1</span></div>
-              <div class="attraction-info">
-                <div class="attraction-name">株洲方特欢乐世界 <span class="grade">4A</span></div>
-                <div class="hot-row"><span class="heat">🔥 6.6</span><span>主题项目 · 游乐项目</span></div>
-                <div class="facts"><span>🎟 门票：95元起</span><span>🕘 营业时间：8:30–18:30</span><span>🌟 建议游玩：4.0–8.0小时</span></div>
-              </div><span class="arrow-circle">→</span>
+              <div class="rank-img"><img src="assets/fangte-attraction.png" alt="株洲方特欢乐世界航拍图"></div>
+              <div class="ad-copy">
+                <div class="query-text">株洲方特欢乐世界 <span class="ad-grade">4A</span></div>
+                <div class="ad-meta"><span class="ad-score">🔥 6.6</span><span class="ad-category">主题项目 · 游乐项目</span></div>
+                <div class="ad-facts"><span class="ad-fact">◷ 营业时间：8:30–18:30</span></div>
+                <div class="ad-tickets"><div class="ad-ticket"><strong class="ad-price-now">¥159</strong><s class="ad-price-old">¥299</s><span class="ad-ticket-name">【单人】门票</span><span class="ad-refund">随时退·过期退</span></div><div class="ad-ticket"><strong class="ad-price-now">¥69</strong><s class="ad-price-old">¥199</s><span class="ad-ticket-name">【单人】夜场门票</span><span class="ad-refund">随时退·过期退</span></div></div>
+              </div><span class="arrow-circle" aria-hidden="true">›</span>
             </div>
             <div class="answer-intro">
               <h3>景点介绍</h3>

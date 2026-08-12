@@ -8,9 +8,15 @@
 .
 ├── index.html                         # Demo 导航首页
 └── demos/
-    └── tourist-attraction/            # 景区推荐商业化 Demo
+    ├── tourist-attraction/            # 景区推荐商业化 Demo
+    │   ├── index.html
+    │   └── assets/
+    ├── food-dining/                   # 餐饮推荐商业化 Demo
+    │   ├── index.html
+    │   └── assets/
+    └── elderly-care/                  # 养老推荐商业化 Demo
         ├── index.html
-        └── assets/                    # 本 Demo 专属图片资源
+        └── assets/
 ```
 
 每个可独立体验的 Demo 放在 `demos/<demo-name>/` 下，并且必须有自己的 `index.html` 与 `assets/` 目录。
@@ -27,6 +33,8 @@
 
 - 导航首页：`https://YOUR_NAME.github.io/related-queries/`
 - 景区推荐：`https://YOUR_NAME.github.io/related-queries/demos/tourist-attraction/`
+- 餐饮推荐：`https://YOUR_NAME.github.io/related-queries/demos/food-dining/`
+- 养老推荐：`https://YOUR_NAME.github.io/related-queries/demos/elderly-care/`
 
 ## 分支约定
 
@@ -35,6 +43,16 @@
 - `fix/<demo-name>/<issue>`：修复已存在 Demo，例如 `fix/tourist-attraction/mobile-layout`。
 
 开发完成后通过 Pull Request 合并到 `main`，GitHub Pages 会自动更新。
+
+## 版本快照
+
+当前版本：`20260813_v50_tourist-fangte-image`
+
+可回归快照位于 `versions/20260813_v50_tourist-fangte-image/`，包含集合页、景区 Demo、餐饮 Demo、养老 Demo 与本地图片资源。本版本基于 `versions/20260813_v49_food-dining-badges-minus2px/`，按用户要求将景区 Demo 中“株洲方特欢乐世界”的配图更换为由用户提供的附件切图（新增 `demos/tourist-attraction/assets/fangte-attraction.png`，470×648 竖图），首页景区卡与智能体回复介绍卡两处配图同步更新（原 `fangte-aerial-clean.jpg` 保留但不再引用）。餐饮 Demo 与养老 Demo 未做任何改动。后续版本请按同样结构复制保存，避免直接覆盖历史版本。
+
+## 图片来源说明
+
+养老 Demo 的机构实景图裁切自用户提供的《养老中心详情页》设计稿素材，仅用于商业演示示意，不代表真实机构实拍。餐饮 Demo 的详情页使用用户提供的麻辣烫图片作为门店与套餐视觉素材，并使用本地托管的 Wikimedia Commons 真实食物照片作为推荐菜/评论区实物参考。来源、作者与许可证记录见 [CREDITS.md](CREDITS.md)。这些公开照片不代表具体门店实拍或真实用户评论配图。
 
 ## 安全说明
 

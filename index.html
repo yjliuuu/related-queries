@@ -13,6 +13,7 @@
     .eyebrow { margin:0 0 12px; color:var(--blue); font-size:12px; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
     h1 { margin:0; font-size:clamp(30px,6vw,44px); letter-spacing:-.05em; }
     .intro { max-width:540px; margin:14px 0 30px; color:var(--muted); line-height:1.7; }
+    .demo-list { display:grid; gap:16px; }
     .demo-card { display:flex; align-items:center; gap:18px; padding:21px; border:1px solid var(--line); border-radius:22px; background:#fff; color:inherit; text-decoration:none; box-shadow:0 14px 38px rgba(34,50,77,.08); transition:transform .18s ease,box-shadow .18s ease; }
     .demo-card:hover { transform:translateY(-3px); box-shadow:0 20px 42px rgba(34,50,77,.13); }
     .demo-card:focus-visible { outline:3px solid rgba(22,119,255,.35); outline-offset:4px; }
@@ -30,11 +31,23 @@
     <p class="eyebrow">Related Queries</p>
     <h1>互动商业化 Demo 集合</h1>
     <p class="intro">这里汇集不同场景的“猜你想问”互动体验。选择一个 Demo 开始体验。</p>
-    <a class="demo-card" href="./demos/tourist-attraction/index.html" aria-label="打开景区推荐商业化 Demo">
-      <span class="badge" aria-hidden="true">🏰</span>
-      <span class="copy"><strong>景区推荐商业化 Demo</strong><span>株洲公交智能体 · 方特景区推荐体验</span></span>
-      <span class="arrow" aria-hidden="true">›</span>
-    </a>
+    <div class="demo-list">
+      <a class="demo-card" href="./demos/tourist-attraction/index.html" aria-label="打开景区推荐商业化 Demo">
+        <span class="badge" aria-hidden="true">🏰</span>
+        <span class="copy"><strong>景区推荐商业化 Demo</strong><span>株洲公交智能体 · 方特景区推荐体验</span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+      <a class="demo-card" href="./demos/food-dining/index.html" aria-label="打开餐饮推荐商业化 Demo">
+        <span class="badge" aria-hidden="true">🍲</span>
+        <span class="copy"><strong>餐饮推荐商业化 Demo</strong><span>株洲公交智能体 · 目的站附近餐饮推荐体验</span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+      <a class="demo-card" href="./demos/elderly-care/index.html" aria-label="打开养老推荐商业化 Demo">
+        <span class="badge" aria-hidden="true">🏥</span>
+        <span class="copy"><strong>养老推荐商业化 Demo</strong><span>株洲公交智能体 · 附近养老机构推荐体验</span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+    </div>
     <footer>后续 Demo 将持续添加至此页面。</footer>
   </main>
 </body>
