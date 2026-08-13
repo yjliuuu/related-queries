@@ -219,32 +219,33 @@
     .ad-image-wrap img,
     .rank-img img { display:block; width:100%; height:100%; object-fit:cover; filter:saturate(.94) contrast(1.02); transition:transform .28s ease, filter .28s ease; }
     .ad-copy,
-    .attraction-info { position:relative; display:flex; flex:1; min-width:0; flex-direction:column; justify-content:center; gap:7px; padding:12px 50px 12px 14px; }
+    .attraction-info { position:relative; display:flex; flex:1; min-width:0; flex-direction:column; justify-content:center; gap:8px; padding:12px 50px 12px 14px; }
     .ad-copy .query-text,
     .attraction-name { display:flex; align-items:center; flex-wrap:wrap; gap:6px; overflow:visible; background:none; color:#09213b; font-size:16px; font-weight:720; line-height:1.25; letter-spacing:-.3px; }
     .ad-grade,
     .grade { display:inline-flex; align-items:center; flex:none; margin-left:0; padding:3px 6px; vertical-align:0; border-radius:6px; background:#eef3ef; color:#66716b; font-size:10px; font-weight:600; letter-spacing:0; }
     .ad-meta,
-    .hot-row { display:flex; align-items:center; flex-wrap:nowrap; min-width:0; gap:6px; margin-top:0; color:#7b8793; font-size:11px; line-height:1.25; }
+    .hot-row { display:flex; align-items:center; flex-wrap:wrap; min-width:0; gap:5px; row-gap:4px; margin-top:0; color:#7b8793; font-size:11px; line-height:1.25; }
     .ad-category,
     .hot-category { display:inline-flex; align-items:center; min-height:0; min-width:0; max-width:100%; padding:0; border-radius:0; color:#788490; background:none; font-size:10px; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .ad-meta .ad-category,
     .hot-row .hot-category { flex:1 1 auto; }
+    .ad-tag { display:inline-flex; align-items:center; flex:none; min-height:20px; padding:3px 5px; border:1px solid #e4ebf3; border-radius:6px; background:#f4f7fb; color:#60738a; font-size:10px; line-height:1; font-weight:650; white-space:nowrap; }
     .ad-score,
     .heat { display:inline-flex; align-items:center; flex:none; gap:2px; min-height:20px; padding:3px 6px; border-radius:7px; background:#fff5b8; color:#202020; font-size:12px; line-height:1; font-weight:750; white-space:nowrap; box-shadow:inset 0 0 0 1px rgba(255,194,44,.12); }
     .ad-good { display:inline-flex; align-items:center; flex:none; margin-left:0; padding:0; color:#4c72c8; background:none; box-shadow:none; font-size:11px; font-style:normal; font-weight:650; line-height:1.2; white-space:nowrap; }
     .ad-facts,
-    .facts { display:grid; gap:4px; margin-top:0; color:#8894a0; font-size:11px; line-height:1.2; }
+    .facts { display:grid; gap:4px; margin-top:0; color:#8894a0; font-size:13px; line-height:1.35; }
     .ad-fact { display:block; }
-    .ad-tickets { display:grid; gap:4px; min-width:0; margin-top:0; }
-    .ad-ticket { display:grid; grid-template-columns:auto auto minmax(0,1fr) auto; align-items:baseline; min-width:0; gap:5px; overflow:hidden; white-space:nowrap; line-height:1.15; }
-    .ad-price-now { flex:none; color:#ff5a48; font-size:18px; font-weight:400; letter-spacing:-.3px; }
+    .ad-tickets { display:grid; gap:5px; min-width:0; margin-top:0; }
+    .ad-ticket { display:grid; grid-template-columns:auto auto minmax(0,1fr) auto; align-items:baseline; min-width:0; gap:5px; overflow:hidden; white-space:nowrap; line-height:1.25; }
+    .ad-price-now { flex:none; color:#ff5a48; font-size:18px; font-weight:800; letter-spacing:-.3px; }
     .ad-price-old { flex:none; color:#a6a6a6; font-size:10px; }
     .ad-ticket-name { min-width:0; overflow:hidden; text-overflow:ellipsis; color:#202124; font-size:11px; font-weight:650; }
     .ad-refund { min-width:0; max-width:72px; overflow:hidden; text-overflow:ellipsis; color:#f06b32; font-size:10px; font-weight:650; }
     .ad-badge { position:absolute; right:10px; top:10px; padding:2px 5px; color:#9b9b9b; border:1px solid #ddd; border-radius:4px; font-size:9px; font-weight:500; }
     .ad-query .chev,
-    .arrow-circle { display:grid; place-items:center; width:27px; height:27px; border-radius:50%; background:#eef2f8; color:#8392af; font-size:20px; font-weight:300; line-height:1; }
+    .arrow-circle { display:flex; align-items:center; justify-content:center; width:27px; height:27px; padding:0 0 2px; border-radius:50%; background:#eef2f8; color:#8392af; font-size:20px; font-weight:700; line-height:1; }
     .ad-query .chev { position:absolute; right:12px; top:12px; margin:0; }
     .ad-query .ad-meta + .ad-facts { padding-right:0; }
     .answer-card { overflow:hidden; }
@@ -278,13 +279,19 @@
       .ad-category,
       .hot-category { font-size:10px; }
       .ad-facts,
-      .facts { gap:3px; font-size:10px; }
-      .ad-tickets { gap:3px; }
-      .ad-ticket { grid-template-columns:auto auto minmax(0,1fr) auto; gap:4px; }
+      .facts { gap:3px; font-size:12px; line-height:1.3; }
+      .ad-tickets { gap:4px; }
+      .ad-ticket { grid-template-columns:auto auto minmax(0,1fr) auto; gap:4px; line-height:1.2; }
       .ad-price-now { font-size:17px; }
       .ad-price-old { font-size:10px; }
       .ad-ticket-name { font-size:10px; }
       .ad-refund { max-width:66px; font-size:9px; }
+    }
+    @media (max-width:390px) {
+      .ad-copy { padding-right:34px; }
+      .ad-meta { gap:2px; row-gap:2px; }
+      .ad-score { min-height:18px; padding:2px 4px; font-size:10px; }
+      .ad-tag { min-height:18px; padding:2px 3px; font-size:9px; }
     }
 
     .composer-wrap { position:absolute; left:0; right:0; bottom:0; z-index:5; padding:12px 14px var(--safe-bottom); background:linear-gradient(180deg,rgba(245,243,239,0),rgba(245,243,239,.96) 26%,#f5f3ef 55%); }
@@ -524,9 +531,9 @@
               <span class="ad-image-wrap"><img src="assets/fangte-attraction.png" alt="株洲方特欢乐世界航拍图" /></span>
               <span class="ad-copy">
                 <span class="query-text">株洲方特欢乐世界 <span class="ad-grade">4A</span></span>
-                <span class="ad-meta"><span class="ad-score">🔥 6.6</span><span class="ad-category">主题项目 · 游乐项目</span></span>
+                <span class="ad-meta"><span class="ad-score">🔥 6.6</span><span class="ad-tag">主题乐园</span><span class="ad-tag">适合亲子</span><span class="ad-tag">情侣游玩</span></span>
                 <span class="ad-facts"><span class="ad-fact">◷ 营业时间：8:30–18:30</span></span>
-                <span class="ad-tickets"><span class="ad-ticket"><strong class="ad-price-now">¥159</strong><s class="ad-price-old">¥299</s><span class="ad-ticket-name">【单人】门票</span><span class="ad-refund">随时退·过期退</span></span><span class="ad-ticket"><strong class="ad-price-now">¥69</strong><s class="ad-price-old">¥199</s><span class="ad-ticket-name">【单人】夜场门票</span><span class="ad-refund">随时退·过期退</span></span></span>
+                <span class="ad-tickets"><span class="ad-ticket"><strong class="ad-price-now">¥69</strong><s class="ad-price-old">¥199</s><span class="ad-ticket-name">【单人】夜场门票</span><span class="ad-refund">随时退·过期退</span></span></span>
               </span>
               <span class="chev" aria-hidden="true">›</span>
             </button>
@@ -741,9 +748,9 @@
               <div class="rank-img"><img src="assets/fangte-attraction.png" alt="株洲方特欢乐世界航拍图"></div>
               <div class="ad-copy">
                 <div class="query-text">株洲方特欢乐世界 <span class="ad-grade">4A</span></div>
-                <div class="ad-meta"><span class="ad-score">🔥 6.6</span><span class="ad-category">主题项目 · 游乐项目</span></div>
+                <div class="ad-meta"><span class="ad-score">🔥 6.6</span><span class="ad-tag">主题乐园</span><span class="ad-tag">适合亲子</span><span class="ad-tag">情侣游玩</span></div>
                 <div class="ad-facts"><span class="ad-fact">◷ 营业时间：8:30–18:30</span></div>
-                <div class="ad-tickets"><div class="ad-ticket"><strong class="ad-price-now">¥159</strong><s class="ad-price-old">¥299</s><span class="ad-ticket-name">【单人】门票</span><span class="ad-refund">随时退·过期退</span></div><div class="ad-ticket"><strong class="ad-price-now">¥69</strong><s class="ad-price-old">¥199</s><span class="ad-ticket-name">【单人】夜场门票</span><span class="ad-refund">随时退·过期退</span></div></div>
+                <div class="ad-tickets"><div class="ad-ticket"><strong class="ad-price-now">¥69</strong><s class="ad-price-old">¥199</s><span class="ad-ticket-name">【单人】夜场门票</span><span class="ad-refund">随时退·过期退</span></div></div>
               </div><span class="arrow-circle" aria-hidden="true">›</span>
             </div>
             <div class="answer-intro">
