@@ -212,8 +212,8 @@
     .answer-card:focus-visible { outline:3px solid rgba(22,119,255,.28); outline-offset:3px; }
     .ad-query::before { display:none; }
     .ad-query .query-icon { display:none; }
-    .ad-image-wrap { position:relative; flex:none; width:94px; min-height:126px; overflow:hidden; border-radius:20px 0 0 20px; }
-    .rank-img { position:relative; min-height:126px; overflow:hidden; border-radius:16px; }
+    .ad-image-wrap { position:relative; align-self:stretch; flex:none; width:94px; min-height:0; overflow:hidden; border-radius:20px 0 0 20px; }
+    .rank-img { position:relative; align-self:stretch; min-height:0; overflow:hidden; border-radius:16px; }
     .ad-image-wrap::after,
     .rank-img::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(12,35,57,.12)); }
     .ad-image-wrap img,
