@@ -277,6 +277,24 @@
     .ad-query:active .ad-image-wrap img,
     .answer-card:active .rank-img img { transform:scale(1.035); filter:saturate(1) contrast(1.04); }
     .rotating-out { opacity:.15; transform:translateY(-4px); }
+    /* 餐饮首页卡片保持平面样式，详情页与聊天页层次不变。 */
+    #homeView .wifi-card,
+    #homeView .bus-card,
+    #homeView .bus-card[aria-label="12路公交实时信息"],
+    #homeView .eatery-module,
+    #homeView .query,
+    #homeView .query:hover,
+    #homeView .query:active,
+    #homeView .ad-query,
+    #homeView .ad-query:hover,
+    #homeView .ad-query:active,
+    #homeView .answer-card,
+    #homeView .answer-card:hover,
+    #homeView .answer-card:active { box-shadow:none; }
+    /* 首页连网与实时公交模块保留微弱投影。 */
+    #homeView .wifi-card,
+    #homeView .bus-card,
+    #homeView .bus-card[aria-label="12路公交实时信息"] { box-shadow:0 2px 8px rgba(41,38,25,.04); }
     @media (max-width:360px) {
       .ad-image-wrap,
       .rank-img { width:96px; min-height:128px; }

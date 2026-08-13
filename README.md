@@ -14,7 +14,10 @@
     ├── food-dining/                   # 餐饮推荐商业化 Demo
     │   ├── index.html
     │   └── assets/
-    └── elderly-care/                  # 养老推荐商业化 Demo
+    ├── elderly-care/                  # 养老推荐商业化 Demo
+    │   ├── index.html
+    │   └── assets/
+    └── hotel/                          # 酒店推荐商业化 Demo
         ├── index.html
         └── assets/
 ```
@@ -35,6 +38,7 @@
 - 景区推荐：`https://YOUR_NAME.github.io/related-queries/demos/tourist-attraction/`
 - 餐饮推荐：`https://YOUR_NAME.github.io/related-queries/demos/food-dining/`
 - 养老推荐：`https://YOUR_NAME.github.io/related-queries/demos/elderly-care/`
+- 酒店推荐：`https://YOUR_NAME.github.io/related-queries/demos/hotel/`
 
 ## 分支约定
 
@@ -46,9 +50,9 @@
 
 ## 版本快照
 
-当前版本：`20260813_v54_tourist-card-image-stretch`
+当前版本：`20260813_v77_hotel-room-card-scale`
 
-可回归快照位于 `versions/20260813_v54_tourist-card-image-stretch/`，包含集合页、景区 Demo、餐饮 Demo、养老 Demo 与本地图片资源。本版本基于 `versions/20260813_v54_tourist-card-image-stretch/`，修复手机端景区推荐卡片配图适配：配图宽度保持 94px，高度跟随卡片内容自然拉伸，卡片高度由文字与票价内容决定，避免配图固定高度造成卡片比例失衡。餐饮 Demo 与养老 Demo 未做任何改动。后续版本请按同样结构复制保存，避免直接覆盖历史版本。
+可回归快照位于 `versions/20260813_v77_hotel-room-card-scale/`，包含集合页、三个原有场景 Demo、独立酒店 Demo 与本地图片资源。本版本基于 `versions/20260813_v76_hotel-coupon-row-scale/`，按截图参考将房型列表配图同比缩小 6px，并调整标题、价格字号与间距保持协调；酒店 Demo 自带 CSS、JavaScript 与 assets，不修改景区、餐饮、养老 Demo，也未改动共用模块。酒店页面保留连网、实时公交、猜你想问三大基础功能，并按酒店设计稿加入亚朵酒店推荐卡、房型详情、收藏、优惠券与预订交互。后续版本请按同样结构复制保存，避免直接覆盖历史版本。
 
 ## 图片来源说明
 

@@ -16,6 +16,24 @@
 - `demos/food-dining/assets/attachment-platter.jpg`
 - `demos/food-dining/assets/attachment-red-bowl.jpg`
 
+## 酒店推荐 Demo 用户提供图片
+
+以下酒店素材均来自用户提供的《商业化-酒店推荐.png》《酒店详情页.png》及其配套切图，仅用于本项目的静态商业化演示：
+
+- `demos/hotel/assets/hotel-home-reference.png`：酒店推荐首页设计稿参考图。
+- `demos/hotel/assets/hotel-detail-reference.png`：酒店详情页设计稿参考图，作为“几木大床房”房型缩略图视觉素材。
+- `demos/hotel/assets/room-elegant.jpg`、`room-tea.jpg`、`room-superior.jpg`、`room-executive.jpg`：房型列表雅致/几木品茗/高级/行政大床房配图，来自用户提供的房型照片附件。
+- `demos/hotel/assets/hotel-detail-hero.jpg`：酒店详情页头图实景素材，来自用户提供的《详情页头图.jpg》附件。
+- `demos/hotel/assets/hotel-front.png`：亚朵酒店门头素材。
+- `demos/hotel/assets/rating-49.png`、`favorite.png`、`ai-spark.png`、`tag-breakfast.png`、`tag-invoice.png`、`tag-booking.png`、`luxury-badge.png`：酒店卡片配套图标和标签素材。
+
+## 酒店详情页周边探索背景图
+
+以下两张背景图从餐饮 Demo 的 Wikimedia 素材复制到酒店 Demo 本地托管，仅作为周边餐馆的实物参考图，不暗示与具体门店存在关系（经用户确认复用）：
+
+- `demos/hotel/assets/nearby-1.jpg`：MaLaTang.JPG，作者 linan0827，公共领域（Public domain）。来源页：<https://commons.wikimedia.org/wiki/File:MaLaTang.JPG>
+- `demos/hotel/assets/nearby-2.jpg`：Red House hot pot Chongqing.jpg，作者 Akira CA，CC0 1.0。来源页：<https://commons.wikimedia.org/wiki/File:Red_House_hot_pot_Chongqing.jpg>
+
 ## Wikimedia Commons 图片
 
 以下图片已下载并本地托管，访问日期：2026-08-10。页面使用时进行了裁切/缩放；Wikimedia 图片仅作为食物实物参考，不暗示与该门店存在关系。
