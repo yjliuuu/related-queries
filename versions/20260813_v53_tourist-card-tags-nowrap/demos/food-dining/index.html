@@ -1,0 +1,1327 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f3ef" />
+  <title>株洲公交智能体 · 餐饮商业化演示</title>
+  <style>
+    :root {
+      --bg: #f5f3ef;
+      --paper: #ffffff;
+      --ink: #202124;
+      --muted: #93979d;
+      --blue: #168cf5;
+      --green: #00c982;
+      --yellow: #ffd91a;
+      --warm: #fff2a9;
+      --violet: #6358ff;
+      --purple: #b829db;
+      --line: #ebeae7;
+      --shadow: 0 12px 36px rgba(41, 38, 25, .07);
+      --safe-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width:100%; margin: 0; min-height: 100%; overflow-x:hidden; background: #d8d8d8; color: var(--ink); }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+    button, input { font: inherit; }
+    button { border: 0; color: inherit; }
+    [hidden] { display: none !important; }
+
+    .app {
+      position: relative;
+      width: min(100%, 430px);
+      height: 100dvh;
+      min-height: 640px;
+      margin: 0 auto;
+      overflow: hidden;
+      background: var(--bg);
+      box-shadow: 0 0 80px rgba(0,0,0,.18);
+      isolation: isolate;
+    }
+
+    .view {
+      position: absolute;
+      inset: 0;
+      width:100%;
+      max-width:100%;
+      min-width:0;
+      overflow: hidden;
+      background: var(--bg);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(24px);
+      transition: opacity .28s ease, transform .32s cubic-bezier(.22,.75,.25,1), visibility .32s;
+    }
+    .view.active { opacity: 1; visibility: visible; transform: translateX(0); z-index: 2; }
+    /* 过渡期间不再平移整个页面，避免首页卡片被带出屏幕；页面内容始终保持稳定对齐。 */
+    .view.leaving,
+    .view.active.leaving { transform: translateX(0); }
+
+    .scroll {
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      padding-bottom: 112px;
+    }
+    .scroll::-webkit-scrollbar { display: none; }
+
+    .ambient { display:none; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width:100%;
+      min-width:0;
+      height: 80px;
+      padding: max(13px, env(safe-area-inset-top)) 22px 9px;
+      z-index: 8;
+      background: var(--bg);
+    }
+    .avatar { width:41px; height:41px; border-radius:50%; border:2px solid rgba(255,255,255,.95); object-fit:cover; box-shadow:0 3px 12px rgba(80,50,0,.10); }
+    .agent-title { min-width:0; flex:1; }
+    .agent-title strong { display:block; font-size:18px; letter-spacing:-.65px; font-weight:760; white-space:nowrap; }
+    .agent-title span { display:none; }
+    .top-actions { display:flex; align-items:center; gap:9px; }
+    .icon-btn { display:grid; place-items:center; padding:0; background:transparent; cursor:pointer; transition:transform .18s ease, opacity .18s ease; }
+    .icon-btn:active { transform:scale(.92); }
+    .icon-btn img { display:block; object-fit:contain; }
+    #soundBtn { width:40px; height:40px; }
+    #soundBtn img { width:34px; height:34px; }
+    #moreBtn { width:82px; height:32px; }
+    #moreBtn img { width:82px; height:auto; }
+    #chatSound { width:40px; height:40px; border-radius:50%; background:#afaeab; color:#fff; }
+    #chatSound svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .icon-btn.active { opacity:.72; }
+
+    .content { position: relative; z-index: 1; width:100%; min-width:0; padding: 14px 14px 32px; }
+    .content > * { max-width:100%; min-width:0; }
+    .home-reply { display:none; margin-top:13px; }
+    #homeView.reply-mode .section-heading-row,
+    #homeView.reply-mode .query-list { display:none; }
+    #homeView.reply-mode .content { padding-top:14px; }
+    #homeView .bus-card[aria-label="12路公交实时信息"] {
+      position:sticky;
+      top:80px;
+      z-index:7;
+      margin-bottom:13px;
+      box-shadow:0 9px 20px rgba(37,35,25,.10);
+    }
+    #homeView.reply-mode .home-reply { display:block; }
+    #homeView.reply-mode .home-scroll-card { animation:pushUp .42s cubic-bezier(.22,.75,.25,1) both; }
+    @keyframes pushUp { from { opacity:0; transform:translateY(34px); } to { opacity:1; transform:translateY(0); } }
+    .section-kicker { margin: 22px 7px 10px; font-size: 14px; color: #9b9b9b; font-weight: 500; }
+    .section-heading-row { display:flex; align-items:end; justify-content:space-between; margin: 22px 7px 10px; }
+    .section-heading-row .section-kicker { margin:0; }
+    .rotate-note { font-size: 10px; color:#aaa; }
+
+    .wifi-card, .bus-card, .query, .answer-card { background: var(--paper); box-shadow: var(--shadow); }
+    .wifi-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-width:0;
+      margin-bottom: 12px;
+      padding: 18px 18px;
+      border-radius: 23px;
+    }
+    .wifi-copy { min-width:0; }
+    .wifi-copy strong,
+    .wifi-copy span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .wifi-connect { flex:none; }
+    .wifi-copy strong { display: block; font-size: 18px; letter-spacing: -.4px; }
+    .wifi-copy span { display: block; color: #a3a3a3; margin-top: 4px; font-size: 13px; }
+    .wifi-connect { display:flex; align-items:center; gap:6px; border-radius: 22px; padding: 11px 14px; background: #ffeb8d; font-size: 14px; font-weight: 650; cursor:pointer; }
+    .wifi-connect.connected { background:#ddf8eb; color:#008a58; }
+    .wifi-connect img { display:block; width:18px; height:18px; object-fit:contain; }
+
+    .bus-card { position:relative; min-width:0; padding: 17px 17px 7px; border-radius: 24px; overflow:hidden; }
+    .route-top > div { min-width:0; }
+    .route-dest,
+    .route-next { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .bus-card.compact { margin-bottom: 13px; padding-bottom: 15px; }
+    .chat-scroll > .bus-card.compact {
+      position:sticky;
+      top:10px;
+      z-index:3;
+      margin:0 0 13px;
+      padding:14px 17px 15px;
+      border-radius:24px;
+      box-shadow:0 9px 18px rgba(37,35,25,.10);
+    }
+    .route-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+    .route-dest { font-size: 18px; font-weight:680; letter-spacing:-.35px; }
+    .route-next { color:#6f7277; margin-top:6px; font-size:14px; }
+    .route-next b { color:var(--blue); font-weight:650; }
+    .remind-btn { background:#3298ff; color:#fff; border-radius:18px; padding:8px 13px; font-size:12px; cursor:pointer; white-space:nowrap; }
+    .remind-btn.set { background:#eceef1; color:#989da4; }
+    .route-track { position:relative; height:90px; margin:8px -17px 0; }
+    .route-viewport { width:100%; height:100%; overflow-x:auto; overflow-y:hidden; overscroll-behavior-x:contain; padding:0 17px; scrollbar-width:none; -webkit-overflow-scrolling:touch; cursor:grab; }
+    .route-viewport::-webkit-scrollbar { display:none; }
+    .route-viewport:active { cursor:grabbing; }
+    .route-rail { position:relative; width:820px; height:86px; }
+    .route-line { position:absolute; left:30px; right:30px; top:41px; height:4px; border-radius:999px; background:linear-gradient(90deg,#c7cad1 0 19%,var(--green) 19%); }
+    .route-line::after { content:""; position:absolute; left:21%; right:0; top:0; height:100%; background:repeating-linear-gradient(135deg,transparent 0 7px,rgba(255,255,255,.9) 7px 9px,transparent 9px 15px); }
+    .route-stop { position:absolute; top:34px; left:var(--x); width:82px; height:52px; transform:translateX(-50%); text-align:center; }
+    .route-stop::before { content:""; display:block; width:16px; height:16px; margin:0 auto; border:3px solid white; border-radius:50%; background:var(--green); box-sizing:border-box; position:relative; z-index:1; }
+    .route-stop.passed::before { background:#c7cad1; }
+    .route-stop.current::before { width:23px; height:23px; margin-top:-4px; background:var(--green); box-shadow:0 0 0 3px #eefaf5; }
+    .route-stop .station-name { position:absolute; left:50%; top:21px; width:max-content; max-width:90px; transform:translateX(-50%); color:#737373; font-size:13px; line-height:1.2; white-space:nowrap; }
+    .route-stop.label-top .station-name { top:-23px; }
+    .route-stop.current .station-name { top:-27px; color:#202124; font-size:15px; font-weight:700; }
+    .route-stop.current .current-tag { display:none; }
+    .route-stop.destination.is-destination::before { width:24px; height:24px; margin-top:-4px; background:var(--blue); box-shadow:0 0 0 3px #edf7ff; }
+    .route-stop.destination.is-destination .station-name { color:var(--blue); font-weight:700; }
+    .destination-tag { display:none; position:absolute; left:50%; top:39px; transform:translateX(-50%); width:max-content; padding:2px 5px; border-radius:4px; color:var(--blue); background:#e8f4ff; font-size:8px; line-height:1.1; white-space:nowrap; }
+    .route-stop.destination.is-destination .destination-tag { display:block; }
+    .bus-emoji { position:absolute; left:13%; top:3px; transform:translateX(-50%); font-size:19px; filter:drop-shadow(0 2px 1px rgba(0,0,0,.12)); animation:busBob 2s ease-in-out infinite; }
+    @keyframes busBob { 0%,100%{transform:translate(-50%,0) rotate(-1deg)} 50%{transform:translate(-50%,-2px) rotate(1deg)} }
+    .compact .route-track { height:84px; margin-top:7px; transform:scaleY(.94); transform-origin:top; }
+    .compact .route-rail { height:82px; }
+
+    .query-list { display:flex; flex-direction:column; align-items:flex-start; gap:10px; }
+    .query {
+      position:relative;
+      display:inline-flex;
+      align-self:flex-start;
+      align-items:center;
+      gap:12px;
+      width:max-content;
+      max-width:100%;
+      min-width:0;
+      min-height:52px;
+      padding:10px 14px;
+      text-align:left;
+      border-radius:17px;
+      cursor:pointer;
+      transition: transform .18s ease, box-shadow .18s ease, opacity .28s ease;
+    }
+    .query:active { transform:scale(.985); box-shadow:0 6px 16px rgba(41,38,25,.08); }
+    .query-icon { flex:none; display:block; width:25px; height:25px; object-fit:contain; }
+    .query-text { flex:0 1 auto; min-width:0; overflow-wrap:anywhere; font-size:15px; font-weight:650; line-height:1.34; }
+    .chev { flex:none; margin-left:4px; font-size:22px; line-height:1; color:#727272; font-weight:300; }
+    /* Scenic recommendation cards share one visual system across home and chat. */
+    .ad-query,
+    .answer-card {
+      border-radius:20px;
+      border:1px solid rgba(36,52,75,.06);
+      box-shadow:0 8px 24px rgba(40,48,58,.08), 0 2px 6px rgba(40,48,58,.04);
+      transition:transform .2s ease, box-shadow .2s ease;
+    }
+    .ad-query {
+      align-items:stretch;
+      width:100%;
+      min-height:132px;
+      gap:0;
+      padding:0;
+      overflow:hidden;
+      text-align:left;
+    }
+    .ad-query:focus-visible,
+    .answer-card:focus-visible { outline:3px solid rgba(22,119,255,.28); outline-offset:3px; }
+    .ad-query::before { display:none; }
+    .ad-query .query-icon { display:none; }
+    .ad-image-wrap,
+    .rank-img { position:relative; flex:none; width:108px; min-height:132px; overflow:hidden; border-radius:20px 0 0 20px; }
+    .ad-image-wrap::after,
+    .rank-img::after { content:""; position:absolute; inset:0; pointer-events:none; background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(12,35,57,.12)); }
+    .ad-image-wrap img,
+    .rank-img img { display:block; width:100%; height:100%; object-fit:cover; filter:saturate(.94) contrast(1.02); transition:transform .28s ease, filter .28s ease; }
+    .ad-copy,
+    .attraction-info { position:relative; display:flex; flex:1; min-width:0; flex-direction:column; justify-content:center; gap:7px; padding:12px 50px 12px 14px; }
+    .ad-copy .query-text,
+    .attraction-name { display:flex; align-items:center; flex-wrap:wrap; gap:6px; overflow:visible; background:none; color:#09213b; font-size:16px; font-weight:720; line-height:1.25; letter-spacing:-.3px; }
+    .ad-grade,
+    .grade { display:inline-flex; align-items:center; flex:none; margin-left:0; padding:3px 6px; vertical-align:0; border-radius:6px; background:#eef3ef; color:#66716b; font-size:10px; font-weight:600; letter-spacing:0; }
+    .ad-meta,
+    .hot-row { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:0; color:#7b8793; font-size:11px; line-height:1.25; }
+    .ad-category,
+    .hot-category { display:inline-flex; align-items:center; min-height:20px; max-width:100%; padding:3px 7px; border-radius:999px; color:#788490; background:#f1f3f5; font-size:10px; line-height:1.2; white-space:nowrap; }
+    .ad-score,
+    .heat { display:inline-flex; align-items:center; gap:3px; padding:4px 7px; border-radius:8px; background:#fff6b4; color:#202020; font-size:13px; font-weight:700; white-space:nowrap; }
+    .ad-good { display:inline-flex; align-items:center; margin-left:1px; padding:3px 6px; border-radius:999px; color:#664900; background:#f3ca48; box-shadow:0 1px 2px rgba(153,111,0,.12); font-size:10px; font-style:normal; font-weight:700; line-height:1.1; white-space:nowrap; }
+    .ad-facts,
+    .facts { display:grid; gap:4px; margin-top:0; color:#8894a0; font-size:11px; line-height:1.2; }
+    .ad-fact { display:block; }
+    .ad-badge { position:absolute; right:10px; top:10px; padding:2px 5px; color:#9b9b9b; border:1px solid #ddd; border-radius:4px; font-size:9px; font-weight:500; }
+    .ad-query .chev,
+    .arrow-circle { display:grid; place-items:center; width:34px; height:34px; border-radius:50%; background:#eef2f8; color:#8392af; font-size:25px; font-weight:300; line-height:1; }
+    .ad-query .chev { position:absolute; right:14px; top:50%; margin:0; transform:translateY(-50%); }
+    .ad-query .ad-meta + .ad-facts { padding-right:0; }
+    .answer-card { overflow:hidden; }
+    .attraction-top { position:relative; display:grid; grid-template-columns:108px minmax(0,1fr); gap:0; min-height:132px; padding:0; align-items:stretch; }
+    .arrow-circle { position:absolute; right:14px; top:50%; transform:translateY(-50%); }
+    .answer-intro { position:relative; padding:0 14px 15px; }
+    .answer-intro h3 { margin:10px 0 8px; color:#09213b; font-size:16px; }
+    .answer-intro p { margin:0; color:#203850; font-size:12px; line-height:1.78; }
+    .gallery { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:12px; }
+    .gallery img { width:100%; height:92px; border-radius:10px; object-fit:cover; }
+    .click-hint { display:flex; align-items:center; justify-content:center; gap:5px; padding:9px; color:#6f7f90; border-top:1px solid #f0f1f2; font-size:10px; }
+    .click-hint b { color:#405eff; }
+    .answer-card:active,
+    .ad-query:active { transform:scale(.985); box-shadow:0 5px 14px rgba(40,48,58,.08); }
+    .ad-query:hover,
+    .answer-card:hover { box-shadow:0 12px 30px rgba(40,48,58,.11), 0 3px 8px rgba(40,48,58,.05); }
+    .ad-query:hover .ad-image-wrap img,
+    .answer-card:hover .rank-img img,
+    .ad-query:active .ad-image-wrap img,
+    .answer-card:active .rank-img img { transform:scale(1.035); filter:saturate(1) contrast(1.04); }
+    .rotating-out { opacity:.15; transform:translateY(-4px); }
+    @media (max-width:360px) {
+      .ad-image-wrap,
+      .rank-img { width:96px; min-height:128px; }
+      .ad-copy,
+      .attraction-info { gap:6px; padding:11px 46px 11px 12px; }
+      .ad-copy .query-text,
+      .attraction-name { font-size:15px; }
+      .ad-meta,
+      .hot-row { gap:5px; font-size:10px; }
+      .ad-category,
+      .hot-category { font-size:10px; }
+      .ad-facts,
+      .facts { gap:3px; font-size:10px; }
+    }
+
+    .composer-wrap { position:absolute; left:0; right:0; width:100%; max-width:100%; min-width:0; z-index:5; bottom:0; padding:12px 14px var(--safe-bottom); background:linear-gradient(180deg,rgba(245,243,239,0),rgba(245,243,239,.96) 26%,#f5f3ef 55%); }
+    .composer { display:flex; align-items:center; gap:9px; width:100%; min-width:0; height:56px; padding:6px 14px 6px 9px; border-radius:29px; background:#fff; box-shadow:0 11px 30px rgba(0,0,0,.10); }
+    .voice-btn { display:grid; place-items:center; flex:none; width:38px; height:38px; padding:0; background:transparent; cursor:pointer; }
+    .voice-btn img { display:block; width:32px; height:32px; object-fit:contain; transition:transform .18s ease, opacity .18s ease; }
+    .voice-btn.listening img { animation:voicePulse .9s ease-in-out infinite; }
+    @keyframes voicePulse { 50%{ transform:scale(.86); opacity:.65; } }
+    .composer input { min-width:0; flex:1; border:0; outline:0; color:#222; background:transparent; font-size:15px; }
+    .composer input::placeholder { color:#a2a2a2; }
+
+    /* ── 餐饮：沿线好店 + 商户卡 ─────────────────────────── */
+    .eatery-module {
+      margin-top: 10px;
+      padding: 14px 14px 16px;
+      border-radius: 26px;
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(33,36,41,.05);
+    }
+    .eatery-head {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin:0 0 14px;
+    }
+    .eatery-head b {
+      position:relative;
+      display:block;
+      min-width:0;
+      padding-left:38px;
+      color:#22252b;
+      font-size:17px;
+      font-weight:780;
+      letter-spacing:-.7px;
+      line-height:1.16;
+    }
+    .eatery-head b::before,
+    .eatery-head b::after {
+      content:"";
+      position:absolute;
+      clip-path:polygon(50% 0,64% 36%,100% 50%,64% 64%,50% 100%,36% 64%,0 50%,36% 36%);
+    }
+    .eatery-head b::before {
+      left:0;
+      top:50%;
+      width:18px;
+      height:18px;
+      margin-top:-9px;
+      background:#ff8a00;
+      border-radius:6px;
+    }
+    .eatery-head b::after {
+      left:18px;
+      top:4px;
+      width:10px;
+      height:10px;
+      background:#ffd7b8;
+      border-radius:4px;
+    }
+    .eatery-head button {
+      flex:none;
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      padding:2px 0 0;
+      color:#acaeb4;
+      background:transparent;
+      font-size:13px;
+      font-weight:600;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .eatery-head button span {
+      font-size:24px;
+      line-height:.7;
+      color:#a8abb1;
+    }
+    .eatery-card {
+      position:relative;
+      display:block;
+      width:100%;
+      min-height:0;
+      padding:0;
+      text-align:left;
+      overflow:visible;
+      background:transparent;
+      border:0;
+      box-shadow:none;
+      cursor:pointer;
+      transition:transform .18s ease;
+    }
+    .eatery-card:focus-visible { outline:3px solid rgba(255,149,54,.18); outline-offset:5px; border-radius:20px; }
+    .eatery-card:active { transform:scale(.992); }
+    .eatery-banner {
+      position:relative;
+      overflow:hidden;
+      border-radius:16px;
+      background:#260708;
+      aspect-ratio:1314/434;
+    }
+    .eatery-banner img {
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:center center;
+      display:block;
+    }
+    .eatery-distance {
+      position:absolute;
+      left:0;
+      bottom:0;
+      display:inline-flex;
+      align-items:center;
+      min-height:0;
+      padding:8px 14px 9px;
+      border-radius:0 13px 0 0;
+      color:#fff;
+      background:rgba(0,0,0,.66);
+      font-size:14px;
+      font-weight:500;
+      line-height:1;
+      letter-spacing:-.3px;
+    }
+    .eatery-brand-tag,
+    .eatery-chev,
+    .eatery-subline,
+    .eatery-note,
+    .promo-tag,
+    .eatery-meta,
+    .eatery-cta,
+    .eatery-dots { display:none; }
+    .eatery-body { min-width:0; padding:14px 0 0; }
+    .eatery-title-row,
+    .eatery-name-wrap { display:block; min-width:0; }
+    .eatery-name {
+      display:block;
+      overflow:hidden;
+      color:#2b2d31;
+      font-size:16px;
+      font-weight:760;
+      letter-spacing:-.5px;
+      line-height:1.24;
+      white-space:nowrap;
+      text-overflow:ellipsis;
+    }
+    .eatery-badges {
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:9px;
+    }
+    .eatery-badges span {
+      display:inline-flex;
+      align-items:center;
+      min-height:0;
+      padding:6px 10px;
+      border-radius:8px;
+      color:#ff6d67;
+      background:#fff1f2;
+      font-size:12px;
+      font-weight:500;
+      line-height:1;
+      letter-spacing:-.2px;
+    }
+    .eatery-badges img.eatery-lead-badge {
+      flex:none;
+      display:block;
+      height:22px;
+      width:auto;
+      object-fit:contain;
+    }
+    .eatery-offers {
+      display:grid;
+      gap:7px;
+      margin-top:11px;
+    }
+    .eatery-offer-main,
+    .eatery-offer-sub {
+      display:grid;
+      grid-template-columns:auto minmax(0,1fr);
+      gap:10px;
+      align-items:baseline;
+      padding:0;
+      background:transparent;
+      border:0;
+    }
+    .promo-price {
+      display:inline-flex;
+      align-items:baseline;
+      gap:6px;
+      color:#ff5c46;
+      font-weight:700;
+      white-space:nowrap;
+    }
+    .promo-price b {
+      font-size:21px;
+      font-weight:600;
+      line-height:.95;
+      letter-spacing:-.9px;
+    }
+    .promo-price s {
+      color:#a4a7ad;
+      font-size:13px;
+      font-weight:400;
+      text-decoration-thickness:1.5px;
+    }
+    .promo-copy,
+    .promo-name { min-width:0; }
+    .promo-name {
+      display:block;
+      overflow:hidden;
+      color:#23252a;
+      font-size:13px;
+      font-weight:500;
+      line-height:1.2;
+      white-space:nowrap;
+      text-overflow:ellipsis;
+      letter-spacing:-.3px;
+    }
+    @media (max-width:360px){
+      .eatery-module { padding:13px 13px 15px; border-radius:24px; }
+      .eatery-head { margin-bottom:13px; }
+      .eatery-head b { padding-left:34px; font-size:16px; }
+      .eatery-head b::before { width:16px; height:16px; margin-top:-8px; }
+      .eatery-head b::after { left:16px; top:4px; width:9px; height:9px; }
+      .eatery-head button { font-size:12px; }
+      .eatery-head button span { font-size:22px; }
+      .eatery-banner { border-radius:14px; }
+      .eatery-distance { padding:7px 12px 8px; font-size:13px; }
+      .eatery-body { padding-top:12px; }
+      .eatery-name { font-size:15px; }
+      .eatery-badges { gap:7px; margin-top:8px; }
+      .eatery-badges span { padding:5px 9px; font-size:11px; }
+      .eatery-badges img.eatery-lead-badge { height:19px; }
+      .eatery-offers { gap:7px; margin-top:10px; }
+      .eatery-offer-main, .eatery-offer-sub { gap:8px; }
+      .promo-price { gap:5px; }
+      .promo-price b { font-size:21px; font-weight:600; }
+      .promo-price s { font-size:12px; }
+      .promo-name { font-size:12px; }
+    }
+
+    /* Chat/answer dining card */
+    .dining-build { background:linear-gradient(135deg,#fff9f3,#fff); border:1px solid rgba(255,122,64,.16); }
+    .dining-rank-img { flex:none; width:108px; min-height:132px; overflow:hidden; border-radius:20px 0 0 20px; background:#fff2e8; }
+    .dining-rank-img img { display:block; width:100%; height:100%; object-fit:cover; }
+    .answer-intro .eat-tag { display:inline-flex; padding:3px 8px; border-radius:8px; color:#b03a12; background:#fff0e6; font-size:10px; font-weight:650; margin-bottom:8px; }
+
+    /* Restaurant detail */
+    #detailView { background:#f5f5f5; transform:translateX(100%); }
+    #detailView.active { transform:translateX(0); }
+    .shop-detail-scroll { padding:0 0 calc(74px + env(safe-area-inset-bottom)); background:#f7f7f7; }
+    .shop-topbar { position:sticky; top:0; z-index:7; display:flex; align-items:center; justify-content:space-between; padding:max(12px, env(safe-area-inset-top)) 14px 10px; background:rgba(247,247,247,.96); backdrop-filter:blur(10px); }
+    .shop-back, .shop-icon-btn { display:grid; place-items:center; width:36px; height:36px; border-radius:50%; color:#2d3136; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,.05); cursor:pointer; }
+    .shop-back svg, .shop-icon-btn svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .shop-top-actions { display:flex; gap:8px; }
+    .shop-icon-btn.active-fav, .shop-tool.active-fav { color:#ff8f1f; background:#fff3eb; }
+    .shop-summary { margin:0 12px; padding:14px; border-radius:18px; background:#fff; box-shadow:0 4px 14px rgba(45,53,61,.045); }
+    .shop-summary-main { display:grid; grid-template-columns:92px minmax(0,1fr); gap:12px; align-items:start; }
+    .shop-thumb-wrap { position:relative; overflow:hidden; border-radius:14px; background:#2e160d; aspect-ratio:1/1; }
+    .shop-thumb { width:100%; height:100%; object-fit:cover; display:block; }
+    .shop-thumb-tag { position:absolute; left:6px; bottom:6px; padding:3px 6px; border-radius:6px; color:#fff; background:rgba(0,0,0,.52); font-size:9px; font-weight:700; }
+    .shop-summary-info h1 { margin:0; color:#202124; font-size:19px; letter-spacing:-.7px; line-height:1.25; }
+    .shop-score-row { display:flex; align-items:center; flex-wrap:wrap; gap:6px; margin-top:6px; }
+    .shop-stars { color:#ff7a22; letter-spacing:-1px; font-size:12px; }
+    .shop-score-row b { color:#ff7a22; font-size:15px; }
+    .shop-score-row span { color:#7b8087; font-size:11px; }
+    .shop-meta-line { margin-top:4px; color:#4d5259; font-size:11px; line-height:1.45; }
+    .shop-meta-line.muted { color:#9a9ea5; }
+    .shop-status-row { display:flex; align-items:center; gap:8px; min-height:42px; margin-top:12px; padding-top:12px; border-top:1px solid #f1f1f1; color:#53575d; font-size:12px; }
+    .shop-status-row b { color:#12aa49; }
+    .shop-mini-link { margin-left:auto; padding:0; color:#9a9ea5; background:transparent; font-size:11px; cursor:pointer; }
+    .shop-info-row { display:flex; align-items:center; gap:10px; padding:11px 0; border-top:1px solid #f5f5f5; }
+    .shop-info-copy { flex:1; min-width:0; color:#4c5056; font-size:12px; line-height:1.45; }
+    .shop-info-copy b { display:block; margin-bottom:2px; color:#1f2328; }
+    .shop-info-copy span { color:#9ca0a7; font-size:11px; }
+    .shop-info-actions { display:flex; gap:8px; }
+    .shop-cta-icon { display:grid; place-items:center; width:36px; height:36px; border-radius:50%; background:#f6f6f7; color:#2c2f33; cursor:pointer; }
+    .shop-cta-icon svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .shop-notice { display:flex; align-items:center; gap:10px; margin:10px 12px 0; padding:11px 12px; border-radius:14px; background:#fff; box-shadow:0 3px 12px rgba(45,53,61,.03); }
+    .shop-notice-logo { flex:none; display:grid; place-items:center; width:38px; height:38px; border-radius:50%; color:#fff; background:linear-gradient(135deg,#ff7a22,#f33f1d); font-size:11px; font-weight:800; line-height:1.1; text-align:center; }
+    .shop-notice-copy { min-width:0; }
+    .shop-notice-copy b { display:block; color:#2c2e32; font-size:12px; }
+    .shop-notice-copy span { display:block; margin-top:3px; color:#9b9fa6; font-size:10px; line-height:1.45; }
+    .shop-tabs { position:sticky; top:56px; z-index:6; display:flex; gap:24px; align-items:end; min-height:44px; margin:12px 0 0; padding:0 16px; background:#f7f7f7; border-bottom:1px solid #efefef; }
+    .shop-tabs button { position:relative; padding:0 0 10px; color:#7b7f86; background:transparent; font-size:14px; font-weight:650; cursor:pointer; }
+    .shop-tabs button.active { color:#202124; }
+    .shop-tabs button.active::after { content:""; position:absolute; left:0; right:0; bottom:0; height:3px; border-radius:999px; background:#202124; }
+    .shop-panel { margin:0 12px 10px; padding:14px; border-radius:16px; background:#fff; box-shadow:0 3px 12px rgba(49,53,60,.04); scroll-margin-top:106px; }
+    .shop-tabs + .shop-panel { margin-top:12px; }
+    .shop-panel-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
+    .shop-panel-head h2 { margin:0; color:#24262a; font-size:17px; letter-spacing:-.5px; }
+    .shop-panel-head span { color:#a1a5ac; font-size:11px; white-space:nowrap; }
+    .photo-disclosure { margin:-4px 0 10px; color:#a1a5ac; font-size:10px; line-height:1.5; }
+    .coupon-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+    .coupon-tags span { padding:4px 7px; border-radius:4px; color:#ff5d42; background:#fff0ea; font-size:10px; font-weight:700; }
+    .coupon-hero { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px; border-radius:14px; background:linear-gradient(90deg,#fff6f1,#fff); border:1px solid #ffe2d6; }
+    .coupon-hero-copy h3 { margin:0 0 4px; color:#282a2f; font-size:15px; }
+    .coupon-hero-copy p { margin:0; color:#9aa0a8; font-size:10px; line-height:1.5; }
+    .coupon-hero-copy small { display:block; margin-top:6px; color:#ff7044; font-size:10px; font-weight:650; }
+    .coupon-hero .price { text-align:right; white-space:nowrap; }
+    .coupon-hero .price b { display:block; color:#ff5d42; font-size:20px; }
+    .coupon-hero .price s { color:#b8bac0; font-size:10px; }
+    .deal-list { display:grid; gap:10px; }
+    .deal-card { display:grid; grid-template-columns:84px minmax(0,1fr) auto; gap:10px; align-items:center; padding:8px 0; border-top:1px solid #f4f4f4; }
+    .deal-card:first-child { padding-top:0; border-top:0; }
+    .deal-thumb { overflow:hidden; border-radius:11px; background:#f5f6f7; aspect-ratio:1/1; }
+    .deal-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .deal-copy { min-width:0; }
+    .deal-copy h3 { margin:0 0 4px; color:#25272b; font-size:13px; line-height:1.4; }
+    .deal-copy p { margin:0; color:#9aa0a8; font-size:9px; line-height:1.5; }
+    .deal-copy small { display:block; margin-top:6px; color:#b0a59b; font-size:9px; }
+    .deal-side { text-align:right; white-space:nowrap; }
+    .deal-side b { display:block; color:#ff5d42; font-size:18px; }
+    .deal-side s { color:#babcc2; font-size:9px; }
+    .deal-buy { margin-top:5px; padding:6px 10px; border-radius:14px; color:#fff; background:linear-gradient(90deg,#ff7930,#f54421); font-size:10px; font-weight:700; cursor:pointer; }
+    .activity-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .activity-card { padding:12px; border-radius:12px; background:#fff7f2; border:1px solid #ffe1d1; }
+    .activity-card strong { display:block; color:#ff642f; font-size:12px; }
+    .activity-card span { display:block; margin-top:5px; color:#7d7f84; font-size:10px; line-height:1.5; }
+    .dish-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+    .dish-tile { overflow:hidden; border-radius:12px; background:#f8f9fa; }
+    .dish-tile img { display:block; width:100%; height:84px; object-fit:cover; }
+    .dish-tile p { margin:7px 8px 3px; color:#33363a; font-size:11px; }
+    .dish-tile span { display:block; margin:0 8px 8px; color:#a1a5ac; font-size:9px; }
+    .review-list { display:grid; gap:0; }
+    .review-card { display:flex; gap:9px; padding:12px 0; border-top:1px solid #f4f2f1; }
+    .review-card:first-child { border-top:0; padding-top:0; }
+    .review-avatar { flex:none; width:34px; height:34px; border-radius:50%; background:#ffe1d1; display:grid; place-items:center; color:#c55b2f; font-size:14px; font-weight:700; }
+    .review-body { min-width:0; flex:1; }
+    .review-head { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+    .review-head strong { font-size:11px; color:#2d3034; }
+    .review-head span { color:#ff7a22; font-size:10px; }
+    .review-body p { margin:5px 0 7px; color:#555b63; font-size:11px; line-height:1.6; }
+    .review-gallery { display:flex; gap:6px; }
+    .review-gallery img { width:62px; height:62px; border-radius:8px; object-fit:cover; }
+    .review-meta { margin-top:6px; color:#b1a79b; font-size:9px; }
+    .shop-bottom-bar { position:absolute; left:0; right:0; bottom:0; z-index:8; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:10px 14px max(10px, env(safe-area-inset-bottom)); background:rgba(255,255,255,.96); box-shadow:0 -6px 24px rgba(0,0,0,.08); backdrop-filter:blur(10px); }
+    .shop-tool { display:grid; place-items:center; gap:4px; min-height:44px; padding:6px 4px; border-radius:14px; color:#43474d; background:#f7f7f8; font-size:11px; font-weight:650; cursor:pointer; }
+    .shop-tool svg { width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    @media (max-width:360px){
+      .shop-summary-main { grid-template-columns:84px minmax(0,1fr); gap:10px; }
+      .shop-summary-info h1 { font-size:17px; }
+      .shop-tabs { gap:18px; padding:0 14px; }
+      .shop-tabs button { font-size:13px; }
+      .shop-panel { margin:0 10px 9px; padding:12px; border-radius:14px; }
+      .coupon-hero { padding:11px; }
+      .deal-card { grid-template-columns:76px minmax(0,1fr) auto; gap:8px; }
+      .deal-copy h3 { font-size:12px; }
+      .deal-side b { font-size:16px; }
+      .dish-strip { gap:7px; }
+      .dish-tile img { height:74px; }
+      .review-gallery img { width:58px; height:58px; }
+      .shop-bottom-bar { gap:6px; padding-left:12px; padding-right:12px; }
+      .shop-tool { min-height:42px; font-size:10px; }
+    }
+
+    /* Chat view */
+    #chatView { display:flex; flex-direction:column; }
+
+    /* Merchant detail */
+    #chatView.active { display:flex; }
+    .chat-head { position:relative; flex:none; display:flex; align-items:center; gap:10px; min-height:75px; padding:max(15px, env(safe-area-inset-top)) 14px 10px; background:linear-gradient(130deg,#fff8dc,#fff0a7); z-index:3; }
+    .back-btn { display:grid; place-items:center; flex:none; width:38px; height:38px; border-radius:50%; background:rgba(255,255,255,.7); cursor:pointer; }
+    .back-btn svg { width:22px; height:22px; fill:none; stroke:#222; stroke-width:2.1; stroke-linecap:round; stroke-linejoin:round; }
+    .chat-head .avatar { width:38px; height:38px; }
+    .chat-title { flex:1; min-width:0; }
+    .chat-title strong { display:block; font-size:15px; }
+    .chat-title span { color:#857c59; font-size:10px; }
+    .chat-scroll { flex:1 1 auto; height:auto; min-height:0; padding:12px 14px 132px; overscroll-behavior:contain; }
+    .user-msg { display:flex; justify-content:flex-end; margin:0 0 14px; animation:popIn .28s ease both; }
+    .user-bubble { max-width:80%; padding:12px 16px; background:var(--yellow); border-radius:19px 19px 5px 19px; font-weight:650; font-size:15px; line-height:1.4; box-shadow:0 6px 16px rgba(207,163,0,.13); }
+    @keyframes popIn { from{opacity:0;transform:translateY(8px) scale(.97)} to{opacity:1;transform:none} }
+    .agent-row { display:flex; align-items:flex-start; animation:popIn .35s ease both; }
+    .answer-wrap { min-width:0; width:100%; }
+    .typing { display:flex; align-items:center; gap:4px; width:max-content; padding:13px 15px; border-radius:6px 17px 17px; background:#fff; box-shadow:var(--shadow); }
+    .typing i { width:6px; height:6px; border-radius:50%; background:#aaa; animation:typing 1s infinite; }
+    .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+    @keyframes typing { 0%,65%,100%{transform:translateY(0);opacity:.5} 32%{transform:translateY(-4px);opacity:1} }
+    .answer-card { position:relative; cursor:pointer; }
+    .answer-intro { position:relative; padding:0 14px 15px; }
+    .answer-intro h3 { margin:10px 0 8px; color:#09213b; font-size:16px; }
+    .answer-intro p { margin:0; color:#203850; font-size:12px; line-height:1.78; }
+    .gallery { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-top:12px; }
+    .gallery img { width:100%; height:92px; border-radius:10px; object-fit:cover; }
+    .click-hint { display:flex; align-items:center; justify-content:center; gap:5px; padding:9px; color:#6f7f90; border-top:1px solid #f0f1f2; font-size:10px; }
+    .click-hint b { color:#405eff; }
+    .text-answer { padding:15px; border-radius:6px 19px 19px; background:#fff; box-shadow:var(--shadow); color:#363b42; font-size:13px; line-height:1.7; }
+    .text-answer h3 { margin:0 0 8px; color:#16181b; font-size:16px; }
+    .text-answer .answer-chip { display:inline-block; margin-top:10px; padding:7px 10px; border-radius:10px; background:#eef7ff; color:#1687e8; font-weight:650; line-height:1; }
+    .followups { display:flex; gap:7px; overflow-x:auto; margin-top:10px; padding-bottom:3px; scrollbar-width:none; }
+    .followups::-webkit-scrollbar { display:none; }
+    .followups button { flex:none; padding:8px 11px; border-radius:15px; color:#555; background:#fff; border:1px solid #e9e9e9; cursor:pointer; font-size:11px; }
+
+
+    .toast { position:absolute; z-index:20; left:50%; bottom:28px; max-width:80%; padding:10px 14px; border-radius:19px; color:#fff; background:rgba(20,22,25,.88); box-shadow:0 8px 20px rgba(0,0,0,.15); font-size:12px; opacity:0; transform:translate(-50%,10px); pointer-events:none; transition:.25s; white-space:nowrap; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+
+    @media (min-width: 600px) {
+      body { padding:18px 0; background:radial-gradient(circle at 20% 0,#f3efdf,transparent 45%),#d9dadc; }
+      .app { height:calc(100dvh - 36px); border-radius:31px; }
+    }
+    @media (max-height: 720px) {
+      .topbar { height:76px; }
+      .wifi-card { padding:13px 16px; }
+      .bus-card { padding-top:14px; padding-bottom:14px; }
+      .route-track { height:100px; }
+      .section-heading-row { margin-top:15px; }
+      .query { min-height:52px; padding-top:11px; padding-bottom:11px; }
+      .ad-query { min-height:83px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="株洲公交智能体商业化演示">
+    <section class="view active" id="homeView" aria-label="智能体首页">
+      <div class="ambient"></div>
+      <div class="scroll" id="homeScroll">
+        <header class="topbar">
+          <img class="avatar" src="assets/avatar.jpg" alt="株洲公交智能体头像" />
+          <div class="agent-title"><strong>株洲公交智能体</strong></div>
+          <div class="top-actions">
+            <button class="icon-btn" id="soundBtn" aria-label="播报开关" title="播报开关"><img src="assets/header-sound-icon.png" alt="" /></button>
+            <button class="icon-btn" id="moreBtn" aria-label="更多功能" title="更多功能"><img src="assets/header-capsule.png" alt="" /></button>
+          </div>
+        </header>
+
+        <div class="content">
+          <section class="wifi-card" aria-label="公交网络">
+            <div class="wifi-copy"><strong>株洲12路公交</strong><span>株洲公交免费 WiFi</span></div>
+            <button class="wifi-connect" id="wifiBtn">
+              <img src="assets/wifi-icon.png" alt="" />
+              <span>连接 WiFi</span>
+            </button>
+          </section>
+
+          <section class="bus-card" aria-label="12路公交实时信息">
+            <div class="route-top">
+              <div><div class="route-dest">开往 · 石板路</div><div class="route-next">下一站 <b>东浦站（约3分钟）</b></div></div>
+              <button class="remind-btn set" id="remindBtn">已设提醒</button>
+            </div>
+            <div class="route-track" aria-label="12路公交站点线路轴，可左右滑动查看更多站点">
+              <div class="route-viewport">
+                <div class="route-rail">
+                  <div class="route-line"></div>
+                  <span class="bus-emoji" aria-hidden="true">🚌</span>
+                  <div class="route-stop passed label-bottom" style="--x:30px"><span class="station-name">和平路</span></div>
+                  <div class="route-stop current label-top" style="--x:150px"><span class="current-tag">当前站</span><span class="station-name">中兴路</span></div>
+                  <div class="route-stop label-bottom" style="--x:270px"><span class="station-name">东浦路</span></div>
+                  <div class="route-stop label-top" style="--x:390px"><span class="station-name">东浦站</span></div>
+                  <div class="route-stop destination is-destination label-bottom" style="--x:510px"><span class="station-name">招呼站</span><span class="destination-tag">目的地</span></div>
+                  <div class="route-stop label-top" style="--x:630px"><span class="station-name">蔡伦路</span></div>
+                  <div class="route-stop label-bottom" style="--x:750px"><span class="station-name">石板路</span></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="eatery-module" aria-label="株洲12路沿线餐饮推荐">
+            <div class="eatery-head"><b>株洲12路 沿线好店</b><button data-toast="滑动查看更多沿线好店">更多推荐 <span>›</span></button></div>
+            <button class="eatery-card" id="eateryCard" data-question="张亮麻辣烫（株洲钟鼓岭店）" data-type="ad" aria-label="打开张亮麻辣烫（株洲钟鼓岭店）商户详情">
+              <div class="eatery-banner">
+                <img src="assets/store-thumb.png" alt="张亮麻辣烫株洲钟鼓岭店招牌推荐图" />
+                <span class="eatery-distance">326m</span>
+              </div>
+              <div class="eatery-body">
+                <div class="eatery-title-row">
+                  <div class="eatery-name-wrap">
+                    <div class="eatery-name">张亮麻辣烫（株洲钟鼓岭店）</div>
+                  </div>
+                </div>
+                <div class="eatery-badges"><img class="eatery-lead-badge" src="assets/eatery-lead-tag.png" alt="优 优质店铺" /><span>门店上新</span><span>回头客多</span></div>
+                <div class="eatery-offers">
+                  <div class="eatery-offer-main">
+                    <span class="promo-price"><b>¥22</b><s>¥35.6</s></span>
+                    <span class="promo-name">【夏日狂欢】张亮经典套餐</span>
+                  </div>
+                  <div class="eatery-offer-sub">
+                    <span class="promo-price"><b>¥23.8</b><s>¥47.6</s></span>
+                    <span class="promo-copy"><span class="promo-name">【夏日狂欢】4荤4素+主食+可乐罐装饮料</span></span>
+                  </div>
+                </div>
+              </div>
+            </button>
+            <div class="eatery-dots" aria-hidden="true"><span class="active"></span><span></span><span></span></div>
+          </section>
+
+          <div class="section-heading-row">
+            <h2 class="section-kicker">在车上，问点有用的</h2>
+          </div>
+          <div class="query-list" id="queryList">
+            <button class="query query-landmark rotatable" data-question="沿途有什么值得看的地标" data-type="landmark">
+              <img class="query-icon" src="assets/icon-scenic.png" alt="景区" /><span class="query-text">沿途有什么值得看的地标</span><span class="chev">›</span>
+            </button>
+            <button class="query query-route rotatable" data-question="到火车站怎么换乘" data-type="route">
+              <img class="query-icon" src="assets/icon-transit.png" alt="出行" /><span class="query-text">到火车站怎么换乘</span><span class="chev">›</span>
+            </button>
+            <button class="query query-food rotatable" data-question="我的目的站有什么好吃的" data-type="food">
+              <img class="query-icon" src="assets/icon-food.png" alt="餐饮" /><span class="query-text">我的目的站有什么好吃的</span><span class="chev">›</span>
+            </button>
+            <button class="query query-hotel rotatable" data-question="附近有什么好的酒店推荐" data-type="hotel">
+              <img class="query-icon" src="assets/icon-transit.png" alt="住宿" /><span class="query-text">附近有什么好的酒店推荐</span><span class="chev">›</span>
+            </button>
+          </div>
+          <div class="home-reply" id="homeReply" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="composer-wrap">
+        <form class="composer" id="homeComposer">
+          <button class="voice-btn" type="button" data-voice aria-label="语音输入"><img src="assets/voice-icon.png" alt="" /></button>
+          <input id="homeInput" autocomplete="off" placeholder="问路线、到站提醒或附近推荐" aria-label="向智能体提问" />
+        </form>
+      </div>
+    </section>
+
+    <section class="view" id="chatView" aria-label="智能体回复页">
+      <header class="chat-head">
+        <button class="back-btn" id="chatBack" aria-label="返回首页"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+        <img class="avatar" src="assets/avatar.jpg" alt="" />
+        <div class="chat-title"><strong>株洲公交智能体</strong><span>结合实时公交为你回答</span></div>
+        <button class="icon-btn" id="chatSound" aria-label="播报"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15 9.5a4 4 0 0 1 0 5M18 7a7 7 0 0 1 0 10"/></svg></button>
+      </header>
+      <div class="scroll chat-scroll" id="chatScroll">
+        <section class="bus-card compact" aria-label="实时公交信息">
+          <div class="route-top">
+            <div><div class="route-dest">开往 · 石板路</div><div class="route-next">下一站 <b>东浦站（约3分钟）</b></div></div>
+            <button class="remind-btn set mini-remind">已设提醒</button>
+          </div>
+          <div class="route-track" aria-label="12路公交站点线路轴，可左右滑动查看更多站点">
+            
+            <div class="route-viewport">
+              <div class="route-rail">
+                <div class="route-line"></div><span class="bus-emoji" aria-hidden="true">🚌</span>
+                <div class="route-stop passed label-bottom" style="--x:30px"><span class="station-name">和平路</span></div>
+                <div class="route-stop current label-top" style="--x:150px"><span class="current-tag">当前站</span><span class="station-name">中兴路</span></div>
+                <div class="route-stop label-bottom" style="--x:270px"><span class="station-name">东浦路</span></div>
+                <div class="route-stop label-top" style="--x:390px"><span class="station-name">东浦站</span></div>
+                <div class="route-stop destination is-destination label-bottom" style="--x:510px"><span class="station-name">招呼站</span><span class="destination-tag">目的地</span></div>
+                <div class="route-stop label-top" style="--x:630px"><span class="station-name">蔡伦路</span></div>
+                <div class="route-stop label-bottom" style="--x:750px"><span class="station-name">石板路</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <div id="conversation"></div>
+      </div>
+      <div class="composer-wrap">
+        <form class="composer" id="chatComposer">
+          <button class="voice-btn" type="button" data-voice aria-label="语音输入"><img src="assets/voice-icon.png" alt="" /></button>
+          <input id="chatInput" autocomplete="off" placeholder="继续问我，例如“附近有什么好吃的”" aria-label="继续提问" />
+        </form>
+      </div>
+    </section>
+
+    <section class="view" id="detailView" aria-label="张亮麻辣烫（株洲钟鼓岭店）商户详情">
+      <div class="scroll shop-detail-scroll" id="detailScroll">
+        <header class="shop-topbar">
+          <button class="shop-back" id="detailBack" aria-label="返回智能体"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+          <div class="shop-top-actions">
+            <button class="shop-icon-btn" data-toast="可搜索附近同类餐饮" aria-label="搜索"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-4.2-4.2"/></svg></button>
+            <button class="shop-icon-btn" data-toast="演示链接已复制" aria-label="分享"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="19" r="2"/><path d="m8 11 8-5M8 13l8 5"/></svg></button>
+            <button class="shop-icon-btn" id="favoriteBtn" aria-label="收藏"><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg></button>
+          </div>
+        </header>
+
+        <section class="shop-summary">
+          <div class="shop-summary-main">
+            <div class="shop-thumb-wrap">
+              <img class="shop-thumb" src="assets/attachment-classic.jpg" alt="张亮麻辣烫实物参考图" />
+              <span class="shop-thumb-tag">麻辣烫</span>
+            </div>
+            <div class="shop-summary-info">
+              <h1>张亮麻辣烫（株洲钟鼓岭店）</h1>
+              <div class="shop-score-row"><span class="shop-stars">★★★★★</span><b>4.1</b><span>128条评价</span></div>
+              <div class="shop-meta-line">麻辣烫 · 3.8万浏览 · ¥27/人</div>
+              <div class="shop-meta-line muted">汉华国际商圈 · 快餐简餐 · 外卖可下单</div>
+            </div>
+          </div>
+          <div class="shop-status-row"><span><b>营业中</b> 11:00-24:00</span><button class="shop-mini-link" type="button" data-scroll-target="couponSection">详情</button></div>
+          <div class="shop-info-row">
+            <div class="shop-info-copy"><b>芦淞区钟鼓岭路35号</b><span>距招呼站约326米，下车步行约4分钟可达</span></div>
+            <div class="shop-info-actions">
+              <button class="shop-cta-icon" data-toast="正在规划路线" aria-label="导航"><svg viewBox="0 0 24 24"><path d="m4 10 15-6-6 16-3-7z"/><path d="m10 14 9-10"/></svg></button>
+              <button class="shop-cta-icon" data-toast="拨号：1567-336-8888" aria-label="电话"><svg viewBox="0 0 24 24"><path d="M6 3h4l2 5-3 2c1.6 3.3 2.7 4.4 6 6l2-3 5 2v4c0 1.1-.9 2-2 2C10.6 21 3 13.4 3 4c0-1.1.9-2 2-1z"/></svg></button>
+            </div>
+          </div>
+        </section>
+
+        <section class="shop-notice" aria-label="商户公告">
+          <div class="shop-notice-logo">张亮<br>官方</div>
+          <div class="shop-notice-copy"><b>张亮麻辣烫美食官方号</b><span>高峰时段建议提前下单；支持代金券与到店套餐抢购，方便下车即吃。</span></div>
+        </section>
+
+        <nav class="shop-tabs" aria-label="详情页导航">
+          <button class="active" type="button" data-scroll-target="couponSection">优惠</button>
+          <button type="button" data-scroll-target="dishSection">推荐菜</button>
+          <button type="button" data-scroll-target="reviewSection">评价(128)</button>
+        </nav>
+
+        <section class="shop-panel" id="couponSection">
+          <div class="shop-panel-head"><h2>优惠</h2><span>全部 ›</span></div>
+          <div class="coupon-tags"><span>神券 满60减6</span><span>神券 满40减4</span></div>
+          <article class="coupon-hero">
+            <div class="coupon-hero-copy">
+              <h3>【夏日狂欢】25元代金券</h3>
+              <p>全周可用 · 全天可用 · 单次可用1张</p>
+              <small>还剩 <em id="cdV" data-count="99">--</em> 份</small>
+            </div>
+            <div class="price"><b>¥19.9</b><s>¥25</s></div>
+          </article>
+        </section>
+
+        <section class="shop-panel">
+          <div class="shop-panel-head"><h2>到店套餐</h2><span>倒计时 <em data-count2>00:29:42</em></span></div>
+          <div class="deal-list">
+            <article class="deal-card">
+              <div class="deal-thumb"><img src="assets/attachment-platter.jpg" alt="元气满满单人餐实物参考图"></div>
+              <div class="deal-copy"><h3>【夏日狂欢】元气满满单人餐（3荤5素）</h3><p>全周可用 · 免预约</p><small>半年售 2118</small></div>
+              <div class="deal-side"><b>¥19.9</b><s>¥29.8</s><button class="deal-buy" data-toast="已选元气满满单人餐 ¥19.9">抢购</button></div>
+            </article>
+            <article class="deal-card">
+              <div class="deal-thumb"><img src="assets/attachment-red-bowl.jpg" alt="张亮经典套餐实物参考图"></div>
+              <div class="deal-copy"><h3>【品牌主推】张亮经典套餐</h3><p>全周可用 · 包间除外 · 免预约</p><small>半年售 807</small></div>
+              <div class="deal-side"><b>¥26.8</b><s>¥35.6</s><button class="deal-buy" data-toast="已选张亮经典套餐 ¥26.8">抢购</button></div>
+            </article>
+            <article class="deal-card">
+              <div class="deal-thumb"><img src="assets/attachment-combo.jpg" alt="男神女神套餐实物参考图"></div>
+              <div class="deal-copy"><h3>【暖冬特惠】男神女神套餐</h3><p>全周可用 · 半年售400+</p><small>蔬菜丰富 · 清爽不腻</small></div>
+              <div class="deal-side"><b>¥15.8</b><s>¥28.8</s><button class="deal-buy" data-toast="已选男神女神套餐 ¥15.8">抢购</button></div>
+            </article>
+            <article class="deal-card">
+              <div class="deal-thumb"><img src="assets/attachment-hotpot.jpg" alt="烫捞肥牛卷单人餐实物参考图"></div>
+              <div class="deal-copy"><h3>【暖冬特惠】烫捞肥牛卷单人餐</h3><p>全周可用 · 半年售69</p><small>肉量升级 · 饱腹感更强</small></div>
+              <div class="deal-side"><b>¥27.88</b><s>¥40</s><button class="deal-buy" data-toast="已选烫捞肥牛卷单人餐 ¥27.88">抢购</button></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="shop-panel">
+          <div class="shop-panel-head"><h2>超值单品</h2><span>已拼 7000+</span></div>
+          <div class="deal-list">
+            <article class="deal-card">
+              <div class="deal-thumb"><img src="assets/attachment-bone-broth.jpg" alt="荤素套餐实物参考图"></div>
+              <div class="deal-copy"><h3>【夏日狂欢】荤素套餐</h3><p>随时退 · 过期退 · 全周可用</p><small>店内热卖 · 适合首次尝试</small></div>
+              <div class="deal-side"><b>¥21.8</b><s>¥37.6</s><button class="deal-buy" data-toast="已选荤素套餐 ¥21.8">抢购</button></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="shop-panel">
+          <div class="shop-panel-head"><h2>活动</h2><span>更多 ›</span></div>
+          <div class="activity-row">
+            <article class="activity-card"><strong>打卡领券</strong><span>行车途中先领券，下车到店后可直接核销使用。</span></article>
+            <article class="activity-card"><strong>80元代金券包</strong><span>组合优惠更划算，适合多人拼餐或连续复购。</span></article>
+          </div>
+        </section>
+
+        <section class="shop-panel" id="dishSection">
+          <div class="shop-panel-head"><h2>推荐菜</h2><span>网友推荐菜（124）</span></div>
+          <p class="photo-disclosure">真实公开实物照参考 · 菜品以门店实际出品为准</p>
+          <div class="dish-strip">
+            <article class="dish-tile"><img src="assets/real-malatang.jpg" alt="张亮经典麻辣烫实物参考图"><p>张亮经典麻辣烫</p><span>39人推荐</span></article>
+            <article class="dish-tile"><img src="assets/real-chongqing-hotpot.jpg" alt="烫捞肥牛卷实物参考图"><p>烫捞肥牛卷</p><span>14人推荐</span></article>
+            <article class="dish-tile"><img src="assets/real-hotpot-ingredients.jpg" alt="时蔬拼盘实物参考图"><p>时蔬拼盘</p><span>11人推荐</span></article>
+          </div>
+        </section>
+
+        <section class="shop-panel" id="reviewSection">
+          <div class="shop-panel-head"><h2>评价（128）</h2><span>查看全部 ›</span></div>
+          <p class="photo-disclosure">评论配图为真实公开实物照参考，非该门店实拍或用户原图</p>
+          <div class="review-list">
+            <article class="review-card">
+              <div class="review-avatar">瘦</div>
+              <div class="review-body">
+                <div class="review-head"><strong>好难瘦</strong><span>★★★★★</span><small>Lv5</small></div>
+                <p>味道很好吃，干净卫生，分量足，老板很热情，是钟鼓岭这边回头率很高的一家麻辣烫。</p>
+                <div class="review-gallery"><img src="assets/real-malatang.jpg" alt="麻辣烫实物参考图"><img src="assets/real-hotpot.jpg" alt="锅物实物参考图"></div>
+                <div class="review-meta">√ 吃完打卡 · 2025-12-16</div>
+              </div>
+            </article>
+            <article class="review-card">
+              <div class="review-avatar">探</div>
+              <div class="review-body">
+                <div class="review-head"><strong>美食探店家</strong><span>★★★★☆</span><small>Lv6</small></div>
+                <p>门店在钟鼓岭，店内座位比较多，套餐性价比高，适合公交到站后顺路解决一餐。</p>
+                <div class="review-gallery"><img src="assets/real-chongqing-hotpot.jpg" alt="肥牛锅物实物参考图"><img src="assets/real-hotpot-ingredients.jpg" alt="火锅食材实物参考图"></div>
+                <div class="review-meta">¥45/人 · 通过大众点评消费 · 2025-11-05</div>
+              </div>
+            </article>
+            <article class="review-card">
+              <div class="review-avatar">阿</div>
+              <div class="review-body">
+                <div class="review-head"><strong>阿缟要炸了</strong><span>★★★★★</span><small>Lv3</small></div>
+                <p>麻辣鲜香，出餐很快，公交下车走几分钟就能到，临时想吃热乎的很合适。</p>
+                <div class="review-gallery"><img src="assets/real-chongqing-hotpot.jpg" alt="锅物实物参考图"><img src="assets/real-hotpot.jpg" alt="火锅实物参考图"></div>
+                <div class="review-meta">2025-10-02</div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <div class="shop-bottom-bar">
+        <button class="shop-tool" id="favoriteLowBtn" aria-label="收藏"><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg><span>收藏</span></button>
+        <button class="shop-tool" data-toast="已打卡张亮麻辣烫（株洲钟鼓岭店）" aria-label="打卡"><svg viewBox="0 0 24 24"><path d="M12 21s7-5.4 7-11a7 7 0 1 0-14 0c0 5.6 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg><span>打卡</span></button>
+        <button class="shop-tool" data-toast="已打开评价入口" aria-label="写评价"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="m16.5 3.5 4 4L8 20l-4 1 1-4z"/></svg><span>写评价</span></button>
+      </div>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+    (() => {
+      'use strict';
+      const $ = (s, root = document) => root.querySelector(s);
+      const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+      const homeView = $('#homeView');
+      const chatView = $('#chatView');
+      const detailView = $('#detailView');
+      const detailScroll = $('#detailScroll');
+      const chatScroll = $('#chatScroll');
+      const conversation = $('#conversation');
+      const homeScroll = $('#homeScroll');
+      const homeReply = $('#homeReply');
+      const toast = $('#toast');
+      let activeView = homeView;
+      let soundOn = false;
+      let answerTimer = null;
+      let toastTimer = null;
+
+      const escapeHTML = (value) => String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+      function showView(next, direction = 'forward') {
+        if (next === activeView) return;
+        const prev = activeView;
+        if (next === homeView) {
+          $('#homeScroll')?.scrollTo({ left:0, top:0, behavior:'auto' });
+          $$('.route-viewport').forEach(viewport => { viewport.scrollLeft = 0; });
+        }
+        if (direction === 'back') next.style.transform = 'translateX(-18px)';
+        next.classList.add('active');
+        requestAnimationFrame(() => { next.style.transform = ''; prev.classList.add('leaving'); });
+        setTimeout(() => { prev.classList.remove('active', 'leaving'); activeView = next; }, 300);
+      }
+
+      function showToast(message) {
+        clearTimeout(toastTimer);
+        toast.textContent = message;
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 1900);
+      }
+
+      function scrollChat() {
+        requestAnimationFrame(() => chatScroll.scrollTo({ top: chatScroll.scrollHeight, behavior: 'smooth' }));
+      }
+
+      const queryPool = [
+        { q:'沿途有什么值得看的地标', type:'landmark', icon:'assets/icon-scenic.png', alt:'地标', cls:'query-landmark' },
+        { q:'到火车站怎么换乘', type:'route', icon:'assets/icon-transit.png', alt:'出行', cls:'query-route' },
+        { q:'我的目的站有什么好吃的', type:'food', icon:'assets/icon-food.png', alt:'餐饮', cls:'query-food' },
+        { q:'附近有什么好的酒店推荐', type:'hotel', icon:'assets/icon-transit.png', alt:'住宿', cls:'query-hotel' },
+        { q:'这趟车还有多久到招呼站', type:'arrival', icon:'assets/icon-transit.png', alt:'出行', cls:'query-route' },
+        { q:'12路末班车是几点', type:'schedule', icon:'assets/icon-transit.png', alt:'出行', cls:'query-route' },
+        { q:'到站前提醒我下车', type:'reminder', icon:'assets/icon-transit.png', alt:'出行', cls:'query-route' },
+        { q:'现在车上拥挤吗', type:'crowd', icon:'assets/icon-transit.png', alt:'出行', cls:'query-route' },
+        { q:'坐这趟车要多少钱', type:'fare', icon:'assets/icon-transit.png', alt:'出行', cls:'query-route' }
+      ];
+      let rotateOffset = 0;
+
+      function bindQuery(button) {
+        button.onclick = () => {
+          if (button.dataset.type === 'ad') {
+            openDetail();
+            return;
+          }
+          ask(button.dataset.question, button.dataset.type);
+        };
+      }
+      $$('.query').forEach(bindQuery);
+      const eateryCard = $('#eateryCard');
+      if (eateryCard) {
+        eateryCard.onclick = openDetail;
+        eateryCard.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') openDetail(); };
+      }
+
+      function rotateQueries() {
+        if (activeView !== homeView || document.hidden) return;
+        const slots = $$('.rotatable');
+        slots.forEach(el => el.classList.add('rotating-out'));
+        setTimeout(() => {
+          rotateOffset = (rotateOffset + 1) % queryPool.length;
+          slots.forEach((el, i) => {
+            const item = queryPool[(rotateOffset + i) % queryPool.length];
+            el.className = `query rotatable ${item.cls} rotating-out`;
+            el.dataset.question = item.q;
+            el.dataset.type = item.type;
+            const icon = $('.query-icon', el);
+            icon.src = item.icon;
+            icon.alt = item.alt;
+            $('.query-text', el).textContent = item.q;
+          });
+          requestAnimationFrame(() => slots.forEach(el => el.classList.remove('rotating-out')));
+        }, 260);
+      }
+      setInterval(rotateQueries, 3800);
+
+      const answers = {
+        landmark: { title:'沿途地标推荐', body:'12路沿途可看到神农城炎帝文化主题公园、株洲博物馆和湘江风光带。若在招呼站下车，步行约12分钟可到株洲方特欢乐世界。', chip:'🚌 建议招呼站下车' },
+        route: { title:'去株洲火车站这样换乘', body:'在东浦站下车后步行约180米，到“东浦路口”站换乘T2路，预计28分钟到株洲火车站。当前道路畅通，建议预留8分钟换乘时间。', chip:'全程约38分钟 · ¥2' },
+        food: { title:'目的站附近美食', body:'招呼站附近1公里内有攸县香干、醴陵炒粉和株洲什锦菜。张亮麻辣烫（钟鼓岭店）距你仅726m，营业到24点，夏日套餐很划算，点击卡片可直接抢购。', chip:'查看张亮麻辣烫 ›' },
+        arrival: { title:'预计3分钟到站', body:'车辆已驶过中兴路，距离东浦站约620米。按当前车速，约3分钟抵达；到招呼站预计还需9分钟。', chip:'已开启实时刷新' },
+        schedule: { title:'12路运营时间', body:'开往石板路方向首班06:20、末班21:30；工作日高峰约8–12分钟一班，平峰约15分钟一班。', chip:'末班车还有2小时15分' },
+        reminder: { title:'到站提醒已设置', body:'将在抵达招呼站前1站，通过声音和震动提醒你。当前预计还有9分钟，请留意随身物品。', chip:'✓ 招呼站 · 提前1站提醒' },
+        crowd: { title:'当前舒适不拥挤', body:'车内预计还有约12个座位，拥挤度为“舒适”。下一站预计有6人上车、3人下车。', chip:'舒适度 78%' },
+        fare: { title:'本次乘车票价 ¥2', body:'株洲12路实行一票制，支持交通卡、乘车码和现金。学生卡及符合条件的优待卡按本地规则减免。', chip:'支持扫码乘车' },
+        hotel: { title:'附近酒店推荐', body:'招呼站周边1.5公里内有佳宁商务酒店（约¥168起）和神农大酒店（约¥398起），皆可乘12路公交直达约15分钟，支持在线比价预订。', chip:'查看2家酒店 ›' },
+        default: { title:'我来帮你看看', body:'这是商业演示中的模拟回答。你可以问我实时到站、公交换乘、沿途美食、酒店推荐，或直接输入“张亮麻辣烫”查看详情。', chip:'试试：附近有什么好吃的' }
+      };
+
+      function diningCard() {
+        return `
+          <article class="answer-card dining-build" id="attractionCard" tabindex="0" role="button" aria-label="查看张亮麻辣烫（株洲钟鼓岭店）商户详情">
+            <div class="attraction-top">
+              <div class="dining-rank-img"><img src="assets/attachment-classic.jpg" alt="张亮麻辣烫实物参考图"></div>
+              <div class="ad-copy">
+                <div class="query-text">张亮麻辣烫（株洲钟鼓岭店）</div>
+                <div class="ad-meta"><span class="heat">📍 326m</span><span class="hot-category">快餐简餐 · 回头客多</span></div>
+                <div class="ad-facts"><span class="ad-fact">👍 128条好评 · 4.1分</span><span class="ad-fact">◷ 营业时间 11:00–24:00</span><span class="ad-fact">🎟 经典套餐 ¥26.8</span></div>
+              </div><span class="arrow-circle" aria-hidden="true">›</span>
+            </div>
+            <div class="answer-intro">
+              <span class="eat-tag">🌶️ 张亮麻辣烫（株洲钟鼓岭店）</span>
+              <p>招牌麻辣烫麻辣鲜香，菜品新鲜分量足。25元代金券 ¥19.9 抢购，张亮经典套餐 ¥26.8，营业到深夜，下车不远就能吃。</p>
+              <div class="gallery"><img src="assets/real-malatang.jpg" alt="张亮经典麻辣烫实物参考图"><img src="assets/attachment-red-bowl.jpg" alt="麻辣烫套餐实物参考图"></div>
+            </div>
+          </article>`;
+      }
+
+      function textAnswer(type) {
+        const a = answers[type] || answers.default;
+        return `<div class="text-answer"><h3>${escapeHTML(a.title)}</h3><div>${escapeHTML(a.body)}</div><span class="answer-chip">${escapeHTML(a.chip)}</span></div>
+          <div class="followups"><button data-follow="arrival">还有多久到站</button><button data-follow="reminder">设置下车提醒</button><button data-follow="ad">附近有什么好吃的</button></div>`;
+      }
+
+      function bindAttractionCard(root) {
+        const attraction = $('#attractionCard', root);
+        if (!attraction) return;
+        attraction.onclick = openDetail;
+        attraction.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') openDetail(); };
+      }
+
+      function bindHomeFollowups(root) {
+        $$('[data-follow]', root).forEach(btn => btn.onclick = () => {
+          const t = btn.dataset.follow;
+          if (t === 'ad') ask('张亮麻辣烫（株洲钟鼓岭店）', 'ad');
+          else {
+            const poolItem = queryPool.find(x => x.type === t);
+            ask(poolItem ? poolItem.q : btn.textContent, t);
+          }
+        });
+      }
+
+      function showHomeReply(question, type) {
+        homeView.classList.add('reply-mode');
+        homeReply.innerHTML = `<div class="user-msg"><div class="user-bubble">${escapeHTML(question)}</div></div>
+          <div class="home-scroll-card"><div class="typing" aria-label="正在回复"><i></i><i></i><i></i></div></div>`;
+        requestAnimationFrame(() => homeScroll.scrollTo({ top: homeScroll.scrollHeight, behavior:'smooth' }));
+        answerTimer = setTimeout(() => {
+          const answer = type === 'ad' ? diningCard() : textAnswer(type);
+          homeReply.innerHTML = `<div class="user-msg"><div class="user-bubble">${escapeHTML(question)}</div></div><div class="home-scroll-card">${answer}</div>`;
+          bindAttractionCard(homeReply);
+          bindHomeFollowups(homeReply);
+          requestAnimationFrame(() => homeScroll.scrollTo({ top: homeScroll.scrollHeight, behavior:'smooth' }));
+          if (soundOn && 'speechSynthesis' in window) {
+            speechSynthesis.cancel();
+            const spoken = type === 'ad' ? '为你推荐张亮麻辣烫（株洲钟鼓岭店），点击卡片可以查看详情与抢购套餐。' : (answers[type] || answers.default).body;
+            speechSynthesis.speak(new SpeechSynthesisUtterance(spoken));
+          }
+        }, type === 'ad' ? 520 : 420);
+      }
+
+      function ask(question, type = 'default') {
+        clearTimeout(answerTimer);
+        if (type === 'reminder') setReminder(true);
+        if (activeView !== homeView) showView(homeView, 'back');
+        showHomeReply(question, type);
+      }
+
+      function openDetail() {
+        $('#detailScroll').scrollTop = 0;
+        showView(detailView);
+      }
+
+      function setReminder(enabled, shouldCenter = true) {
+        $$('.remind-btn').forEach(btn => {
+          btn.classList.toggle('set', enabled);
+          btn.textContent = enabled ? '已设提醒' : '设置提醒';
+        });
+        $$('.route-stop.destination').forEach(stop => stop.classList.toggle('is-destination', enabled));
+        if (enabled && shouldCenter) requestAnimationFrame(() => {
+          $$('.route-viewport').forEach(viewport => {
+            const destination = $('.route-stop.destination', viewport);
+            if (!destination) return;
+            const target = destination.offsetLeft - (viewport.clientWidth - destination.offsetWidth) / 2;
+            viewport.scrollTo({ left:Math.max(0, target), behavior:'smooth' });
+          });
+        });
+      }
+      $$('.remind-btn').forEach(btn => btn.onclick = () => {
+        const enabled = !btn.classList.contains('set');
+        setReminder(enabled);
+        showToast(enabled ? '已设置招呼站到站提醒' : '已取消到站提醒');
+      });
+      requestAnimationFrame(() => {
+        $$('.route-viewport').forEach(viewport => { viewport.scrollLeft = 0; });
+        setReminder(!!$('#remindBtn')?.classList.contains('set'), false);
+      });
+
+      $('#wifiBtn').onclick = e => {
+        const btn = e.currentTarget;
+        const on = btn.classList.toggle('connected');
+        $('span', btn).textContent = on ? 'WiFi 已连接' : '连接 WiFi';
+        showToast(on ? '已连接 ZHUZHOU-BUS WiFi' : 'WiFi 已断开');
+      };
+
+      function toggleSound(btn) {
+        soundOn = !soundOn;
+        $$('#soundBtn, #chatSound').forEach(x => x.classList.toggle('active', soundOn));
+        showToast(soundOn ? '语音播报已开启' : '语音播报已关闭');
+        if (!soundOn && 'speechSynthesis' in window) speechSynthesis.cancel();
+      }
+      $('#soundBtn').onclick = e => toggleSound(e.currentTarget);
+      $('#chatSound').onclick = e => toggleSound(e.currentTarget);
+      $('#moreBtn').onclick = () => showToast('支持实时公交、美食、酒店与到站提醒');
+      $('#chatBack').onclick = () => showView(homeView, 'back');
+      $('#detailBack').onclick = () => showView(homeView, 'back');
+
+      function bindComposer(form, input) {
+        form.addEventListener('submit', e => {
+          e.preventDefault();
+          const value = input.value.trim();
+          if (!value) { input.focus(); return; }
+          input.value = '';
+          const low = value.toLowerCase();
+          let type = 'default';
+          if (value.includes('张亮') || value.includes('麻辣烫')) type = 'ad';
+          else if (value.includes('酒店') || value.includes('住宿') || value.includes('民宿')) type = 'hotel';
+          else if (value.includes('多久') || value.includes('到站')) type = 'arrival';
+          else if (value.includes('提醒')) type = 'reminder';
+          else if (value.includes('末班') || value.includes('几点')) type = 'schedule';
+          else if (value.includes('换乘') || value.includes('火车站')) type = 'route';
+          else if (value.includes('吃') || value.includes('美食')) type = 'food';
+          else if (value.includes('拥挤') || value.includes('人多')) type = 'crowd';
+          else if (value.includes('票价') || value.includes('多少钱')) type = 'fare';
+          ask(value, type);
+        });
+      }
+      bindComposer($('#homeComposer'), $('#homeInput'));
+      bindComposer($('#chatComposer'), $('#chatInput'));
+
+      $$('[data-voice]').forEach(btn => btn.onclick = () => {
+        const form = btn.closest('form');
+        const input = $('input', form);
+        btn.classList.add('listening');
+        input.placeholder = '正在聆听…';
+        setTimeout(() => {
+          btn.classList.remove('listening');
+          input.value = '张亮麻辣烫（株洲钟鼓岭店）';
+          input.placeholder = form.id === 'homeComposer' ? '问路线、到站提醒或附近推荐' : '继续问我，例如“附近有什么好吃的”';
+          showToast('已识别：张亮麻辣烫（株洲钟鼓岭店）');
+        }, 1050);
+      });
+
+
+      Array.from(document.querySelectorAll('[data-toast]')).forEach(el => el.onclick = () => showToast(el.dataset.toast));
+
+      let favorite = false;
+      function setFavVisual(on) {
+        favorite = on;
+        [$('#favoriteBtn'), $('#favoriteLowBtn')].forEach(b => {
+          if (!b) return;
+          b.classList.toggle('active-fav', on);
+        });
+      }
+      function toggleFavorite() {
+        setFavVisual(!favorite);
+        showToast(favorite ? '已收藏张亮麻辣烫（株洲钟鼓岭店）' : '已取消收藏');
+      }
+      const favoriteBtn = $('#favoriteBtn');
+      if (favoriteBtn) favoriteBtn.onclick = toggleFavorite;
+      const favLow = $('#favoriteLowBtn');
+      if (favLow) favLow.onclick = toggleFavorite;
+
+      const detailTabs = Array.from(document.querySelectorAll('#detailView [data-scroll-target]'));
+      detailTabs.forEach(btn => btn.onclick = () => {
+        const target = document.getElementById(btn.dataset.scrollTarget);
+        if (!target) return;
+        const top = target.getBoundingClientRect().top - detailScroll.getBoundingClientRect().top + detailScroll.scrollTop - 86;
+        detailScroll.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        if (btn.closest('.shop-tabs')) {
+          Array.from(document.querySelectorAll('#detailView .shop-tabs [data-scroll-target]')).forEach(tab => tab.classList.toggle('active', tab === btn));
+        }
+      });
+
+      // 优惠券/套餐限时倒计时与库存
+      const cdV = $('#cdV');
+      if (cdV) {
+        let stocks = parseInt(cdV.dataset.count, 10);
+        cdV.textContent = stocks;
+        setInterval(() => { stocks = Math.max(0, stocks - 1); cdV.textContent = stocks; }, 26000);
+      }
+      const cdT = document.querySelector('[data-count2]');
+      if (cdT) {
+        let m = 29, s = 42;
+        const pad = n => String(n).padStart(2, '0');
+        setInterval(() => {
+          s -= 1; if (s < 0) { s = 59; m -= 1; if (m < 0) m = 29; }
+          cdT.textContent = `00:${pad(m)}:${pad(s)}`;
+        }, 1000);
+      }
+
+      window.addEventListener('keydown', e => {
+        if (e.key !== 'Escape') return;
+        if (activeView === detailView) showView(chatView, 'back');
+        else if (activeView === chatView) showView(homeView, 'back');
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Related Queries 互动商业化 Demo 集合" />
+  <title>Related Queries · Demo 集合</title>
+  <style>
+    :root { color-scheme: light; --ink:#202126; --muted:#74777f; --line:#e9e9ed; --blue:#1677ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; display:grid; place-items:center; padding:28px 18px; background:linear-gradient(145deg,#f7f7f8,#eef3fb); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; }
+    main { width:min(100%,680px); }
+    .eyebrow { margin:0 0 12px; color:var(--blue); font-size:12px; font-weight:750; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:0; font-size:clamp(30px,6vw,44px); letter-spacing:-.05em; }
+    .intro { max-width:540px; margin:14px 0 30px; color:var(--muted); line-height:1.7; }
+    .demo-list { display:grid; gap:16px; }
+    .demo-card { display:flex; align-items:center; gap:18px; padding:21px; border:1px solid var(--line); border-radius:22px; background:#fff; color:inherit; text-decoration:none; box-shadow:0 14px 38px rgba(34,50,77,.08); transition:transform .18s ease,box-shadow .18s ease; }
+    .demo-card:hover { transform:translateY(-3px); box-shadow:0 20px 42px rgba(34,50,77,.13); }
+    .demo-card:focus-visible { outline:3px solid rgba(22,119,255,.35); outline-offset:4px; }
+    .badge { flex:0 0 auto; display:grid; place-items:center; width:48px; height:48px; border-radius:15px; background:#eaf3ff; color:var(--blue); font-size:25px; }
+    .copy { min-width:0; flex:1; }
+    .copy strong,.copy span { display:block; }
+    .copy strong { font-size:18px; }
+    .copy span { margin-top:6px; color:var(--muted); font-size:14px; }
+    .arrow { color:var(--blue); font-size:28px; line-height:1; }
+    footer { margin-top:25px; color:#9699a1; font-size:13px; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Related Queries</p>
+    <h1>互动商业化 Demo 集合</h1>
+    <p class="intro">这里汇集不同场景的“猜你想问”互动体验。选择一个 Demo 开始体验。</p>
+    <div class="demo-list">
+      <a class="demo-card" href="./demos/tourist-attraction/index.html" aria-label="打开景区推荐商业化 Demo">
+        <span class="badge" aria-hidden="true">🏰</span>
+        <span class="copy"><strong>景区推荐商业化 Demo</strong><span>株洲公交智能体 · 方特景区推荐体验</span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+      <a class="demo-card" href="./demos/food-dining/index.html" aria-label="打开餐饮推荐商业化 Demo">
+        <span class="badge" aria-hidden="true">🍲</span>
+        <span class="copy"><strong>餐饮推荐商业化 Demo</strong><span>株洲公交智能体 · 目的站附近餐饮推荐体验</span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+      <a class="demo-card" href="./demos/elderly-care/index.html" aria-label="打开养老推荐商业化 Demo">
+        <span class="badge" aria-hidden="true">🏥</span>
+        <span class="copy"><strong>养老推荐商业化 Demo</strong><span>株洲公交智能体 · 附近养老机构推荐体验</span></span>
+        <span class="arrow" aria-hidden="true">›</span>
+      </a>
+    </div>
+    <footer>后续 Demo 将持续添加至此页面。</footer>
+  </main>
+</body>
+</html>
