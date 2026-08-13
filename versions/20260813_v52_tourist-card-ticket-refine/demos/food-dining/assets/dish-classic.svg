@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e84b22"/><stop offset="1" stop-color="#b32412"/></linearGradient></defs>
+  <rect width="400" height="400" fill="url(#g)"/>
+  <circle cx="200" cy="182" r="104" fill="#fff" opacity=".96"/>
+  <circle cx="200" cy="182" r="86" fill="#fff" opacity=".9" stroke="#f2c893" stroke-width="3"/>
+  <text x="200" y="198" font-size="64" text-anchor="middle" dominant-baseline="middle">🍲</text>
+  <text x="200" y="330" font-size="34" font-weight="700" text-anchor="middle" fill="#fff" font-family="PingFang SC,Microsoft YaHei,sans-serif">张亮经典麻辣烫</text>
+  <text x="200" y="368" font-size="20" text-anchor="middle" fill="#ffd9c2">夏日狂欢 · 招牌推荐</text>
+</svg>

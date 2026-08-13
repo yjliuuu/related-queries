@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="540" viewBox="0 0 1200 540">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3f0f08"/>
+      <stop offset="0.45" stop-color="#80170d"/>
+      <stop offset="1" stop-color="#f0781c"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.65" cy="0.32" r="0.8">
+      <stop offset="0" stop-color="#ffcf63" stop-opacity="0.92"/>
+      <stop offset="0.35" stop-color="#ff9a2f" stop-opacity="0.56"/>
+      <stop offset="1" stop-color="#ff9a2f" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="soup" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd45f"/>
+      <stop offset="0.4" stop-color="#ffb432"/>
+      <stop offset="1" stop-color="#f25a19"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="540" rx="28" fill="url(#bg)"/>
+  <rect width="1200" height="540" rx="28" fill="url(#glow)" opacity="0.95"/>
+  <text x="92" y="232" fill="#ff4a18" font-size="190" font-weight="900" font-family="PingFang SC, Microsoft YaHei, sans-serif" letter-spacing="10">招牌必点</text>
+  <g transform="translate(690 106)">
+    <ellipse cx="172" cy="246" rx="208" ry="90" fill="#61200f" opacity="0.36"/>
+    <path d="M44 192c50-63 120-113 192-113 59 0 118 29 171 87 12 13 22 30 15 47-9 23-44 26-74 26H117c-28 0-58-3-68-24-7-15-1-33 15-47Z" fill="url(#soup)"/>
+    <path d="M88 162c28-22 64-34 96-34 28 0 55 8 80 22 20 12 39 30 33 50-7 24-41 34-71 34H112c-26 0-59-8-68-30-7-18 6-31 24-42Z" fill="#ffe68c" opacity="0.92"/>
+    <ellipse cx="212" cy="164" rx="78" ry="34" fill="#ffe9a8" opacity="0.92"/>
+    <ellipse cx="212" cy="188" rx="116" ry="42" fill="#ffcf54" opacity="0.9"/>
+    <path d="M122 65c11-29 44-44 70-33 25 11 38 40 31 67-8 29-37 53-58 79-8 10-16 21-19 34-2 8-13 8-15 0-8-34-22-54-40-75-19-22-31-46-24-72 6-24 28-41 55-41Z" fill="#f6d7a2"/>
+    <path d="M140 89c8-18 28-27 45-21 16 7 24 26 19 43-5 18-24 33-38 51-6 8-11 16-13 25-1 5-8 5-9 0-5-24-15-39-28-53-13-16-21-32-17-47 4-16 18-28 41-28Z" fill="#f2b060" opacity="0.9"/>
+    <g fill="#6eb94d">
+      <path d="M316 250c12-34 36-67 69-88 18-12 44-23 59-12 17 12 3 38-18 57-16 14-35 23-52 34-16 10-31 23-43 38-7 9-19 3-15-9Z"/>
+      <path d="M372 225c23-31 54-54 88-63 16-4 38-5 45 11 7 16-10 31-28 39-19 8-40 10-58 17-17 6-34 17-47 32-8 9-16-1-10-12Z" opacity="0.92"/>
+    </g>
+    <circle cx="166" cy="312" r="64" fill="#f7d7c7"/>
+    <circle cx="166" cy="312" r="52" fill="#d28a6f"/>
+    <path d="M128 307c13-17 33-29 54-29 21 0 40 12 53 28-9 31-40 53-71 53-20 0-37-9-48-24 0-10 4-20 12-28Z" fill="#f8d0bd"/>
+  </g>
+</svg>

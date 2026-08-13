@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe6cf"/>
+      <stop offset="1" stop-color="#f6b880"/>
+    </linearGradient>
+    <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff4ea"/>
+      <stop offset="1" stop-color="#ffe5d4"/>
+    </linearGradient>
+    <linearGradient id="sign" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff7a22"/>
+      <stop offset="1" stop-color="#f24c1a"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="900" fill="url(#bg)"/>
+  <circle cx="742" cy="132" r="118" fill="#fff3d7" opacity="0.75"/>
+  <rect x="120" y="158" width="660" height="560" rx="34" fill="url(#wall)" stroke="#f1cfb7" stroke-width="6"/>
+  <rect x="160" y="200" width="580" height="138" rx="24" fill="url(#sign)"/>
+  <text x="450" y="286" fill="#fff8ef" font-size="74" font-weight="900" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, sans-serif" letter-spacing="4">张亮麻辣烫</text>
+  <text x="450" y="356" fill="#9b4a2e" font-size="34" font-weight="700" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, sans-serif">株洲钟鼓岭店</text>
+  <rect x="170" y="402" width="254" height="234" rx="20" fill="#fff" stroke="#f0d4c3" stroke-width="4"/>
+  <rect x="476" y="402" width="254" height="234" rx="20" fill="#fff" stroke="#f0d4c3" stroke-width="4"/>
+  <rect x="196" y="430" width="202" height="180" rx="16" fill="#faede4"/>
+  <rect x="502" y="430" width="202" height="180" rx="16" fill="#faede4"/>
+  <g transform="translate(450 654)">
+    <ellipse cx="0" cy="70" rx="194" ry="52" fill="#e8a16d" opacity="0.34"/>
+    <path d="M-182 20h364c-10 72-72 132-182 132S-172 92-182 20Z" fill="#fff4ea"/>
+    <path d="M-160 18c28-58 90-98 160-98 70 0 132 40 160 98 4 8-2 18-11 18H-149c-9 0-15-10-11-18Z" fill="#7a2b16"/>
+    <path d="M-122 8c26-36 72-60 122-60s96 24 122 60c3 4 1 10-4 10h-236c-5 0-7-6-4-10Z" fill="#ffd45f"/>
+    <path d="M-86 -24c20-31 50-52 86-52 36 0 66 21 86 52H-86Z" fill="#f9b93f"/>
+    <g fill="#6bae50">
+      <path d="M78-10c42-40 86-56 116-42 13 6 19 19 15 31-5 16-22 23-41 28-30 7-60 14-88 33-15 10-31-6-2-50Z"/>
+      <path d="M34-4c19-25 44-41 72-46 13-2 28 1 33 13 5 12-4 22-17 28-17 7-37 8-56 15-13 5-25 14-37 26-9 10-10-6 5-36Z" opacity="0.92"/>
+    </g>
+    <path d="M-18-82c19 16 28 40 24 65-4 23-22 46-40 67-9 10-24 4-24-9 0-35-9-65-26-92-11-17-3-40 16-48 16-6 34-1 50 17Z" fill="#f8d5a2"/>
+    <path d="M16-70c11 9 16 24 13 39-4 18-18 35-31 51-7 8-18 3-18-7 0-26-6-49-19-69-7-11-2-26 10-31 11-5 25-1 45 17Z" fill="#efb060" opacity="0.9"/>
+  </g>
+  <text x="450" y="800" fill="#995433" font-size="28" text-anchor="middle" font-family="PingFang SC, Microsoft YaHei, sans-serif">门店展示示意图</text>
+</svg>
