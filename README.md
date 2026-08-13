@@ -46,9 +46,9 @@
 
 ## 版本快照
 
-当前版本：`20260813_v52_tourist-card-ticket-refine`
+当前版本：`20260813_v53_tourist-card-tags-nowrap`
 
-可回归快照位于 `versions/20260813_v52_tourist-card-ticket-refine/`，包含集合页、景区 Demo、餐饮 Demo、养老 Demo 与本地图片资源。本版本基于 `versions/20260813_v51_tourist-card-tags/`，继续优化景区 Demo 中“株洲方特欢乐世界”推荐卡片：优惠票仅保留现价 ¥69 的夜场门票，营业时间字号增加 2px，调整卡片行距，并将箭头统一改为背景圆内居中、加粗的样式。首页景区卡与智能体回复介绍卡同步更新，餐饮 Demo 与养老 Demo 未做任何改动。后续版本请按同样结构复制保存，避免直接覆盖历史版本。
+可回归快照位于 `versions/20260813_v53_tourist-card-tags-nowrap/`，包含集合页、景区 Demo、餐饮 Demo、养老 Demo 与本地图片资源。本版本基于 `versions/20260813_v53_tourist-card-tags-nowrap/`，修复手机端景区推荐卡片标签换行问题：在窄屏下保持 6.6 评分与“主题乐园”“适合亲子”“情侣游玩”三个标签同一行，票价信息维持原有单行布局。餐饮 Demo 与养老 Demo 未做任何改动。后续版本请按同样结构复制保存，避免直接覆盖历史版本。
 
 ## 图片来源说明
 
