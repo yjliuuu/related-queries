@@ -46,9 +46,9 @@
 
 ## 版本快照
 
-当前版本：`20260813_v50_tourist-fangte-image`
+当前版本：`20260813_v52_tourist-card-ticket-refine`
 
-可回归快照位于 `versions/20260813_v50_tourist-fangte-image/`，包含集合页、景区 Demo、餐饮 Demo、养老 Demo 与本地图片资源。本版本基于 `versions/20260813_v49_food-dining-badges-minus2px/`，按用户要求将景区 Demo 中“株洲方特欢乐世界”的配图更换为由用户提供的附件切图（新增 `demos/tourist-attraction/assets/fangte-attraction.png`，470×648 竖图），首页景区卡与智能体回复介绍卡两处配图同步更新（原 `fangte-aerial-clean.jpg` 保留但不再引用）。餐饮 Demo 与养老 Demo 未做任何改动。后续版本请按同样结构复制保存，避免直接覆盖历史版本。
+可回归快照位于 `versions/20260813_v52_tourist-card-ticket-refine/`，包含集合页、景区 Demo、餐饮 Demo、养老 Demo 与本地图片资源。本版本基于 `versions/20260813_v51_tourist-card-tags/`，继续优化景区 Demo 中“株洲方特欢乐世界”推荐卡片：优惠票仅保留现价 ¥69 的夜场门票，营业时间字号增加 2px，调整卡片行距，并将箭头统一改为背景圆内居中、加粗的样式。首页景区卡与智能体回复介绍卡同步更新，餐饮 Demo 与养老 Demo 未做任何改动。后续版本请按同样结构复制保存，避免直接覆盖历史版本。
 
 ## 图片来源说明
 

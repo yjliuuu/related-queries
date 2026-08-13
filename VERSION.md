@@ -1,9 +1,9 @@
 # 当前项目版本
 
-`20260813_v50_tourist-fangte-image`
+`20260813_v52_tourist-card-ticket-refine`
 
-对应可回归快照：[versions/20260813_v50_tourist-fangte-image/](versions/20260813_v50_tourist-fangte-image/)。
+对应可回归快照：[versions/20260813_v52_tourist-card-ticket-refine/](versions/20260813_v52_tourist-card-ticket-refine/)。
 
-上一版快照：[versions/20260813_v49_food-dining-badges-minus2px/](versions/20260813_v49_food-dining-badges-minus2px/)。
+上一版快照：[versions/20260813_v51_tourist-card-tags/](versions/20260813_v51_tourist-card-tags/)。
 
 景区基线快照：[versions/20260806_v9/](versions/20260806_v9/)。
