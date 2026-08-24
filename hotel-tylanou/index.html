@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5f3ef" />
+  <title>太原公交智能体 · 兰欧国际酒店推荐商业化演示</title>
+  <style>
+    :root {
+      --bg:#f5f3ef; --paper:#fff; --ink:#202124; --muted:#97999d;
+      --blue:#168cf5; --green:#00c982; --yellow:#ffeb8d; --violet:#6c5cff;
+      --hotel-blue:#214e7e; --hotel-green:#1e491f; --hotel-gold:#bb7b39;
+      --line:#e9e8e4; --shadow:0 2px 8px rgba(41,38,25,.04);
+      --safe-bottom:max(12px, env(safe-area-inset-bottom));
+    }
+    *{box-sizing:border-box} html,body{margin:0;min-height:100%;background:#d8d8d8;color:var(--ink)}
+    body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+    button,input{font:inherit}button{border:0;color:inherit}[hidden]{display:none!important}
+    .app{position:relative;width:min(100%,430px);height:100dvh;min-height:424px;margin:0 auto;overflow:hidden;background:var(--bg);box-shadow:0 0 80px rgba(0,0,0,.18);isolation:isolate}
+    .view{position:absolute;inset:0;overflow:hidden;background:var(--bg);opacity:0;visibility:hidden;transform:translateX(24px);transition:opacity .28s ease,transform .32s cubic-bezier(.22,.75,.25,1),visibility .32s}
+    .view.active{opacity:1;visibility:visible;transform:translateX(0);z-index:2}.view.leaving{transform:translateX(-20px)}
+    .scroll{height:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:112px}.scroll::-webkit-scrollbar{display:none}
+    .topbar{position:sticky;top:0;display:flex;align-items:center;gap:12px;height:80px;padding:max(13px,env(safe-area-inset-top)) 22px 9px;z-index:8;background:var(--bg)}
+    .avatar{width:41px;height:41px;border-radius:50%;border:2px solid rgba(255,255,255,.95);object-fit:cover;box-shadow:0 3px 12px rgba(80,50,0,.1)}
+    .agent-title{min-width:0;flex:1}.agent-title strong{display:block;font-size:18px;letter-spacing:-.65px;font-weight:760;white-space:nowrap}
+    .top-actions{display:flex;align-items:center;gap:9px}.icon-btn{display:grid;place-items:center;padding:0;background:transparent;cursor:pointer;transition:transform .18s ease,opacity .18s ease}.icon-btn:active{transform:scale(.92)}
+    .icon-btn img{display:block;object-fit:contain}#soundBtn{width:40px;height:40px}#soundBtn img{width:34px;height:34px}#moreBtn{width:82px;height:32px}#moreBtn img{width:82px;height:auto}.icon-btn.active{opacity:.72}
+    .content{position:relative;z-index:1;padding:14px 14px 32px}.wifi-card,.bus-card,.query{background:var(--paper);box-shadow:var(--shadow)}
+    .wifi-card{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;padding:14px 16px;border-radius:23px}.wifi-copy{min-width:0;flex:1}.wifi-route-line{display:flex;align-items:center;gap:5px;min-width:0}.wifi-copy strong{display:block;flex:none;font-size:18px;letter-spacing:-.4px;line-height:1}.wifi-copy>span{display:block;color:#a3a3a3;margin-top:8px;font-size:13px;line-height:1}.wifi-connect{display:flex;align-items:center;gap:7px;flex:none;border-radius:22px;padding:10px 17px;background:#ffeb8d;font-size:16px;font-weight:650;cursor:pointer}.wifi-connect.connected{background:#ddf8eb;color:#008a58}.wifi-connect img{display:block;width:22px;height:22px;object-fit:contain}
+    .bus-card{position:relative;padding:17px 17px 7px;border-radius:24px;overflow:hidden}.route-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.route-dest{font-size:18px;font-weight:680;letter-spacing:-.35px}.route-next{color:#6f7277;margin-top:6px;font-size:14px}.route-next b{color:var(--blue);font-weight:650}.remind-btn{background:#3298ff;color:#fff;border-radius:18px;padding:8px 13px;font-size:12px;cursor:pointer;white-space:nowrap}.remind-btn.set{background:#eceef1;color:#989da4}
+    .route-track{position:relative;height:90px;margin:8px -17px 0}.route-viewport{height:100%;overflow-x:auto;overflow-y:hidden;padding:0 17px;scrollbar-width:none;-webkit-overflow-scrolling:touch}.route-viewport::-webkit-scrollbar{display:none}.route-rail{position:relative;width:820px;height:86px}.route-line{position:absolute;left:30px;right:30px;top:41px;height:4px;border-radius:999px;background:linear-gradient(90deg,#c7cad1 0 19%,var(--green) 19%)}.route-line:after{content:"";position:absolute;left:21%;right:0;top:0;height:100%;background:repeating-linear-gradient(135deg,transparent 0 7px,rgba(255,255,255,.9) 7px 9px,transparent 9px 15px)}.route-stop{position:absolute;top:34px;left:var(--x);width:82px;height:52px;transform:translateX(-50%);text-align:center}.route-stop:before{content:"";display:block;width:16px;height:16px;margin:0 auto;border:3px solid #fff;border-radius:50%;background:var(--green);box-sizing:border-box;position:relative;z-index:1}.route-stop.passed:before{background:#c7cad1}.route-stop.current:before{width:23px;height:23px;margin-top:-4px;background:var(--green);box-shadow:0 0 0 3px #eefaf5}.route-stop .station-name{position:absolute;left:50%;top:21px;width:max-content;max-width:90px;transform:translateX(-50%);color:#737373;font-size:13px;line-height:1.2;white-space:nowrap}.route-stop.label-top .station-name{top:-23px}.route-stop.current .station-name{top:-27px;color:#202124;font-size:15px;font-weight:700}.route-stop.destination:before{width:24px;height:24px;margin-top:-4px;background:var(--blue);box-shadow:0 0 0 3px #edf7ff}.route-stop.destination .station-name{color:var(--blue);font-weight:700}.destination-tag{display:block;position:absolute;left:50%;top:39px;transform:translateX(-50%);width:max-content;padding:2px 5px;border-radius:4px;color:var(--blue);background:#e8f4ff;font-size:8px;line-height:1.1;white-space:nowrap}.bus-emoji{position:absolute;left:13%;top:3px;transform:translateX(-50%);font-size:19px;filter:drop-shadow(0 2px 1px rgba(0,0,0,.12));animation:busBob 2s ease-in-out infinite}@keyframes busBob{0%,100%{transform:translate(-50%,0) rotate(-1deg)}50%{transform:translate(-50%,-2px) rotate(1deg)}}
+    .hotel-ad{position:relative;margin-top:14px;padding:15px 14px 13px;border-radius:24px;background:linear-gradient(180deg,#e9f6ff 0%,#fff 31%,#fff 100%);cursor:pointer;overflow:hidden;transition:transform .18s ease}.hotel-ad:active{transform:scale(.992)}.hotel-ad:focus-visible{outline:3px solid rgba(22,140,245,.35);outline-offset:3px}.hotel-ad-head{display:flex;align-items:center;gap:9px;padding:0 3px 13px;border-bottom:1px dashed #e5e8eb}.hotel-ad-head img{width:23px;height:auto;object-fit:contain}.hotel-ad-head strong{min-width:0;background:linear-gradient(100deg,#c92d3b 0%,#e7893e 100%);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:15px;line-height:1.25;font-weight:1009;letter-spacing:-.5px;white-space:nowrap}.hotel-card{position:relative;display:grid;grid-template-columns:90px minmax(0,1fr);gap:12px;align-items:start;padding:18px 6px 4px}.hotel-front{width:94px;height:148px;margin-left:-4px;border-radius:16px;object-fit:cover;object-position:center}.hotel-card-copy{min-width:0;padding-top:1px;padding-right:38px}.hotel-name{margin:0;color:#7b2b35;font-size:17px;font-weight:760;line-height:1.3;letter-spacing:-.75px}.hotel-name-row{display:block;min-width:0;line-height:1.3}.hotel-name-row h2{display:inline}.hotel-name-row .luxury-badge{display:inline-block;width:51px;height:auto;vertical-align:middle;flex:none;object-fit:contain;margin-left:6px}.hotel-rating{display:flex;align-items:center;gap:6px;margin-top:9px;color:#164473;font-size:12px;white-space:nowrap}.hotel-rating img{width:32px;height:auto}.hotel-rating b{font-size:12px;font-weight:650;overflow:hidden;text-overflow:ellipsis}.hotel-tags{display:flex;gap:5px;margin-top:10px;overflow:hidden}.hotel-tags img{width:auto;height:20px;flex:none}.hotel-tags .hotel-tag{height:20px;padding:0 7px;border-color:#cbd7e5;color:#416b99;background:#fff;font-size:10px}.hotel-price{display:flex;align-items:baseline;justify-content:flex-end;gap:5px;margin-top:18px;margin-right:-40px;white-space:nowrap}.hotel-price s{color:#8194aa;font-size:15px}.hotel-price strong{color:#f01921;font-size:25px;font-style:italic;line-height:1;font-weight:700}.hotel-price em{color:#f01921;font-size:15px;font-style:normal}.hotel-favorite{position:absolute;top:17px;right:4px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;background:transparent;color:#8ca7c1;font-size:12px;cursor:pointer}.hotel-favorite img{width:20px;height:20px;object-fit:contain}.hotel-favorite span{white-space:nowrap}.hotel-favorite.active img,.hotel-detail-bottom .tool.active img,.hero-btn.active img{filter:sepia(1) saturate(8) hue-rotate(345deg)}.section-heading-row{display:flex;align-items:end;justify-content:space-between;margin:22px 7px 10px}.section-kicker{margin:0;font-size:14px;color:#9b9b9b;font-weight:500}.query-list{display:flex;flex-direction:column;align-items:flex-start;gap:10px}.query{display:inline-flex;align-items:center;gap:10px;width:fit-content;max-width:100%;min-height:48px;padding:10px 14px;text-align:left;border-radius:17px;cursor:pointer;transition:transform .18s ease,opacity .28s ease}.query:active{transform:scale(.985)}.query-icon{flex:none;display:block;width:25px;height:25px;object-fit:contain}.query-text{flex:0 1 auto;min-width:0;font-size:15px;font-weight:650;line-height:1.34}.chev{flex:none;margin-left:1px;font-size:22px;line-height:1;color:#727272;font-weight:300}.query-landmark{background:#fff}.query-route{background:#fff}.query-food{background:#fff}.query-hotel{background:#fff}.rotating-out{opacity:.15;transform:translateY(-4px)}.arrow-circle{position:absolute;right:12px;top:12px;display:grid;place-items:center;width:27px;height:27px;border-radius:50%;background:#eef2f8;color:#8392af;font-size:20px;line-height:1}
+    .composer-wrap{position:absolute;left:0;right:0;bottom:0;z-index:5;padding:12px 14px var(--safe-bottom);background:linear-gradient(180deg,rgba(245,243,239,0),rgba(245,243,239,.96) 26%,#f5f3ef 55%)}.composer{display:flex;align-items:center;gap:9px;height:56px;padding:6px 14px 6px 9px;border-radius:29px;background:#fff;box-shadow:0 11px 30px rgba(0,0,0,.1)}.voice-btn{display:grid;place-items:center;flex:none;width:38px;height:38px;padding:0;background:transparent;cursor:pointer}.voice-btn img{display:block;width:32px;height:32px;object-fit:contain}.voice-btn.listening img{animation:voicePulse .9s ease-in-out infinite}@keyframes voicePulse{50%{transform:scale(.86);opacity:.65}}.composer input{min-width:0;flex:1;border:0;outline:0;color:#222;background:transparent;font-size:15px}.composer input::placeholder{color:#a2a2a2}
+    #chatView{display:flex;flex-direction:column}#chatView.active{display:flex}.chat-head{position:relative;flex:none;display:flex;align-items:center;gap:10px;min-height:75px;padding:max(15px,env(safe-area-inset-top)) 14px 10px;background:linear-gradient(130deg,#fff8dc,#fff0a7);z-index:3}.back-btn{display:grid;place-items:center;flex:none;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.7);cursor:pointer}.back-btn svg,.shop-back svg{width:22px;height:22px;fill:none;stroke:#222;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}.chat-head .avatar{width:38px;height:38px}.chat-title{flex:1;min-width:0}.chat-title strong{display:block;font-size:15px}.chat-title span{color:#8a7a5c;font-size:10px}.chat-scroll{flex:1 1 auto;height:auto;min-height:0;padding:12px 14px 132px;overscroll-behavior:contain}.chat-scroll .bus-card{margin-bottom:13px}.user-msg{display:flex;justify-content:flex-end;margin:0 0 14px;animation:popIn .28s ease both}.user-bubble{max-width:80%;padding:12px 16px;background:var(--yellow);border-radius:19px 19px 5px 19px;font-weight:650;font-size:15px;line-height:1.4}.typing{display:flex;align-items:center;gap:4px;width:max-content;padding:13px 15px;border-radius:6px 17px 17px;background:#fff;box-shadow:var(--shadow)}.typing i{width:6px;height:6px;border-radius:50%;background:#aaa;animation:typing 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}@keyframes typing{0%,65%,100%{transform:translateY(0);opacity:.5}32%{transform:translateY(-4px);opacity:1}}.text-answer{padding:15px;border-radius:6px 19px 19px;background:#fff;box-shadow:var(--shadow);color:#363b42;font-size:13px;line-height:1.7}.text-answer h3{margin:0 0 8px;color:#16181b;font-size:16px}.answer-chip{display:inline-block;margin-top:10px;padding:7px 10px;border-radius:10px;background:#eef7ff;color:#1687e8;font-weight:650;line-height:1}.detail-link{display:block;width:calc(100% - 28px);margin:0 14px 14px;padding:11px;border-radius:12px;color:#fff;background:#1d4b23;font-size:14px;font-weight:800;text-align:center;cursor:pointer}.followups{display:flex;gap:7px;overflow-x:auto;margin-top:10px;padding-bottom:3px;scrollbar-width:none}.followups::-webkit-scrollbar{display:none}.followups button{flex:none;padding:8px 11px;border-radius:15px;color:#555;background:#fff;border:1px solid #e9e9e9;cursor:pointer;font-size:11px}
+    /* 酒店详情页：按酒店详情设计稿建立独立的可滚动商业化页面。 */
+    #detailView{background:#f7f7f2}.hotel-detail-scroll{padding:0 0 calc(80px + env(safe-area-inset-bottom))}.hotel-hero{position:relative;height:264px;overflow:hidden;background:#5a5148}.hotel-hero img{width:100%;height:100%;object-fit:cover;object-position:center 54%;transform:scale(1.01)}.hotel-hero:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.23),transparent 46%,rgba(0,0,0,.16));pointer-events:none}.hotel-detail-nav{position:sticky;top:0;z-index:9;display:flex;justify-content:space-between;align-items:center;padding:max(12px,env(safe-area-inset-top)) 10px 8px;margin-top:-264px;background:rgba(247,247,247,.96);backdrop-filter:blur(10px)}.hotel-detail-nav .left,.hotel-detail-nav .right{display:flex;align-items:center;gap:8px}.hero-btn{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;color:#2d3136;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06);cursor:pointer}.hero-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.hero-btn img{width:23px;height:23px;object-fit:contain}.hotel-summary{position:relative;z-index:2;margin-top:-1px;padding:22px 20px 14px;background:#f7f7f2}.hotel-summary h1{margin:0;color:#184d24;font-size:22px;line-height:1.35;letter-spacing:-.8px}.hotel-summary-meta{display:flex;gap:12px;margin-top:11px;color:#30312e;font-size:12px;white-space:nowrap;overflow:hidden}.hotel-summary-meta span{flex:none}.hotel-service-tags{display:flex;gap:7px;margin-top:11px;overflow:hidden}.hotel-service-tags img{height:22px;width:auto;flex:none}.hotel-tag{display:inline-flex;align-items:center;flex:none;height:22px;padding:0 9px;border:1px solid #d8d9d3;border-radius:6px;color:#6f6257;background:#fff;font-size:11px;white-space:nowrap}.hotel-tag.featured{border-color:#edc8c8;color:#c33b42;background:#fff5f5}.rating-box{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;padding:14px 10px;border:1px solid #d8d9d3;border-radius:13px}.rating-copy{min-width:0;border-right:1px solid #d8d9d3;padding-right:10px}.rating-copy .rating-head{display:flex;align-items:center;gap:6px}.rating-copy strong{font-size:20px}.rating-copy b{color:#bd3038;font-size:12px}.rating-copy p{margin:8px 0 0;color:#858585;font-size:11px;line-height:1.5}.address-copy{display:flex;align-items:center;gap:8px;color:#292b29;font-size:13px;line-height:1.5}.pin{flex:none;display:grid;place-items:center;color:#204f27}.pin svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.coupon-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:12px;border-top:1px solid #dddcd5;color:#292a28;font-size:13px}.coupon-row strong{color:#b0844e;font-size:19px}.coupon-row button{padding:5px 9px;border:1px solid #d8dad2;border-radius:7px;background:#fff;color:#244b27;font-size:14px;cursor:pointer}.room-section{margin-top:10px;background:#f7f7f2;border-top:8px solid #eceee9}.room-date{display:flex;justify-content:space-between;align-items:center;padding:17px 20px;color:#242522;font-size:18px}.room-date span{color:#777972;font-size:13px}.room-date b{padding:7px 12px;border-radius:6px;background:#eee9d7;color:#484840;font-size:12px;font-weight:500}.room-card{display:grid;grid-template-columns:124px minmax(0,1fr);gap:12px;padding:18px 20px 21px;border-bottom:8px solid #eceee9}.room-thumb{position:relative;width:124px;height:122px;overflow:hidden;border-radius:12px;background:#ddd}.room-thumb img{display:block;width:100%;height:100%;object-fit:cover}.room-thumb span{position:absolute;right:4px;bottom:4px;padding:3px 6px;border-radius:6px;color:#fff;background:rgba(35,35,35,.55);font-size:10px}.room-copy{min-width:0}.room-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}.room-copy h3{margin:3px 0 8px;color:#242522;font-size:16px;line-height:1.25}.room-chevron{display:grid;place-items:center;width:21px;height:21px;border:1px solid #b9bab5;border-radius:50%;color:#8a8c86;line-height:1}.room-chevron svg{width:10px;height:10px;display:block;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}.room-copy p{margin:0;color:#969791;font-size:12px;line-height:1.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.room-breakfast{display:inline-block;margin-top:10px;padding:5px 9px;border:1px solid #d8d9d3;border-radius:6px;color:#5f625c;font-size:11px}.room-price{display:flex;align-items:baseline;justify-content:flex-end;gap:6px;margin-top:13px;color:#b47739;white-space:nowrap}.room-price s{color:#93948e;font-size:12px}.room-price strong{font-size:23px}.room-price em{font-size:12px;font-style:normal}.room-discount{display:block;margin-top:3px;color:#bc7735;font-size:11px;text-align:right}.expand-rooms{display:block;width:100%;padding:24px 0;border:0;background:#f7f7f2;color:#51534e;font-size:13px;cursor:pointer}.detail-section{padding:23px 20px;background:#f7f7f2;border-top:8px solid #eceee9}.detail-section h2{margin:0 0 17px;color:#242522;font-size:19px}.review-score{display:flex;align-items:center;gap:14px}.review-score strong{font-size:43px;font-weight:400;color:#bd3038}.review-score b{font-size:14px;color:#bd3038}.review-score span{color:#777972;font-size:12px}.review-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;text-align:center;color:#333530;font-size:12px}.review-metrics b{display:block;margin-top:5px;font-size:16px}.review-chips{display:flex;gap:7px;overflow:hidden;margin-top:16px}.review-chips span{flex:none;padding:7px 9px;border:1px solid #d8d9d3;border-radius:7px;color:#5e605b;font-size:11px}.review-card{margin-top:16px;padding:15px;border:1px solid #d8d9d3;border-radius:13px}.review-head{display:flex;align-items:center;gap:9px}.review-avatar{display:grid;place-items:center;width:35px;height:35px;border-radius:50%;background:#eee;color:#777;font-size:17px}.review-user{font-size:12px}.review-user span{display:block;margin-top:3px;color:#9b9c96;font-size:10px}.review-card p{margin:13px 0;color:#565852;font-size:12px;line-height:1.65}.review-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.review-gallery div{height:70px;border-radius:9px;overflow:hidden;background:#eee}.review-gallery img{display:block;width:100%;height:100%;object-fit:cover}.hotel-services{display:grid;grid-template-columns:repeat(4,1fr);gap:21px 10px;text-align:center}.service-icon{font-size:24px;display:grid;place-items:center}.service-icon svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.hotel-services span{display:block;margin-top:5px;color:#30322d;font-size:11px}.nearby-list{display:grid;grid-auto-flow:column;grid-auto-columns:65%;gap:10px;overflow-x:auto;scrollbar-width:none}.nearby-list::-webkit-scrollbar{display:none}.nearby-card{height:115px;padding:14px;border-radius:10px;color:#fff}.nearby-card.n1{background:linear-gradient(135deg,rgba(16,36,49,.35),rgba(16,36,49,.75)),url('assets/taiyuan-lobby-wide.jpg') center 60%/cover}.nearby-card.n2{background:linear-gradient(135deg,rgba(16,36,49,.35),rgba(16,36,49,.75)),url('assets/taiyuan-breakfast.jpg') center 60%/cover}.nearby-card b{display:block;font-size:14px}.nearby-card span{display:block;margin-top:34px;font-size:11px}.policy{padding:22px 20px;border-top:8px solid #eceee9;color:#474943;background:#f7f7f2;font-size:13px;line-height:1.75}.policy h3{margin:0 0 11px;color:#292b27;font-size:17px}.policy p{margin:0 0 15px}.hotel-detail-bottom{position:absolute;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;gap:10px;padding:9px 15px var(--safe-bottom);background:rgba(255,255,255,.97);box-shadow:0 -6px 25px rgba(0,0,0,.08);backdrop-filter:blur(12px)}.hotel-detail-bottom .tool{display:grid;place-items:center;gap:2px;width:43px;color:#6d7069;background:transparent;font-size:10px;cursor:pointer}.hotel-detail-bottom .tool img{width:21px;height:21px;object-fit:contain}.hotel-detail-bottom .tool svg{width:20px;height:20px;fill:none;stroke:#6d7069;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.hotel-detail-bottom .primary{flex:1;padding:13px;border-radius:22px;color:#fff;background:#1e491f;font-size:15px;font-weight:800;cursor:pointer}.toast{position:absolute;z-index:20;left:50%;bottom:28px;max-width:80%;padding:10px 14px;border-radius:19px;color:#fff;background:rgba(20,22,25,.88);box-shadow:0 8px 20px rgba(0,0,0,.15);font-size:12px;opacity:0;transform:translate(-50%,10px);pointer-events:none;transition:.25s;white-space:nowrap}.toast.show{opacity:1;transform:translate(-50%,0)}
+    @media(min-width:600px){body{padding:18px 0;background:radial-gradient(circle at 20% 0,#f3efdf,transparent 45%),#d9dadc}.app{height:calc(100dvh - 36px);border-radius:31px}}
+    @media(max-width:360px){.hotel-card{grid-template-columns:82px minmax(0,1fr);gap:8px}.hotel-front{width:86px;height:129px;margin-left:-4px}.hotel-name{font-size:16px}.hotel-rating{gap:4px;font-size:11px}.hotel-rating img{width:28px}.hotel-tags img{height:18px}.hotel-price{margin-right:-42px}.hotel-price strong{font-size:22px}.room-card{grid-template-columns:104px minmax(0,1fr);gap:10px;padding-left:14px;padding-right:14px}.room-thumb{width:104px;height:112px}.room-copy h3{font-size:15px}.hotel-summary{padding-left:14px;padding-right:14px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important}}
+  
+    /* Reference UI: commercial hotel card + mobile hotel detail page */
+    :root{--detail-red:#c72f38;--detail-red-dark:#b92531;--detail-pink:#fff1f1;--detail-gold:#a77837;--detail-bg:#f6f6f6}
+    .hotel-ad{margin-top:16px;padding:14px 14px 12px;border-radius:27px;background:linear-gradient(180deg,#e8f6ff 0%,#f8fcff 30%,#fff 54%);box-shadow:none}
+    .hotel-ad-head{gap:8px;padding:0 3px 11px;border-bottom:0}
+    .hotel-ad-head img{width:25px}
+    .hotel-ad-head strong{font-size:15.5px;letter-spacing:-.65px;background:linear-gradient(100deg,#7656ff 0%,#9a48e8 52%,#c139c4 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .hotel-card{grid-template-columns:94px minmax(0,1fr);gap:12px;padding:13px 6px 1px}
+    .hotel-front{width:94px;height:148px;border-radius:17px;object-fit:cover}
+    .hotel-card-copy{padding:1px 0 0;display:flex;flex-direction:column;min-width:0}
+    .hotel-name{color:#174474;font-size:18px;line-height:1.28;letter-spacing:-.8px}
+    .hotel-name-row .luxury-badge{width:51px;margin-left:5px}
+    .hotel-rating{margin-top:9px;color:#174474;font-size:12px;gap:6px}
+    .hotel-rating img{width:34px}
+    .hotel-tags{gap:5px;margin-top:10px}
+    .hotel-tags .hotel-tag{height:21px;padding:0 8px;border:1px solid #c9d9e9;border-radius:6px;color:#416b99;background:#fff;font-size:10.5px}
+    .hotel-price{margin:15px 0 0;padding-right:0;gap:5px;justify-content:flex-end}
+    .hotel-price s{color:#8194aa;font-size:15px}
+    .hotel-price strong{color:#f01820;font-size:26px}
+    .hotel-price em{color:#f01820;font-size:15px}
+    .hotel-ad .hotel-favorite{display:none}
+    .hotel-ad .detail-link{display:none}
+    .hotel-detail-scroll{padding:0 0 calc(72px + env(safe-area-inset-bottom));background:var(--detail-bg)}
+    .hotel-hero{height:304px;background:#514b47}
+    .hotel-hero img{object-position:center 48%;filter:saturate(.92);transform:none}
+    .hotel-hero:after{background:linear-gradient(180deg,rgba(0,0,0,.34) 0%,rgba(0,0,0,.04) 38%,rgba(0,0,0,.62) 100%)}
+    .hotel-detail-nav{position:absolute;left:0;right:0;top:36px;height:52px;margin:0;padding:0 13px;background:transparent;backdrop-filter:none;z-index:6}
+    .hotel-detail-nav .left,.hotel-detail-nav .right{gap:8px}
+    .hero-btn{width:38px;height:38px;border-radius:50%;color:#fff;background:transparent;box-shadow:none;text-shadow:0 1px 4px rgba(0,0,0,.4)}
+    .hero-btn svg{width:25px;height:25px;stroke-width:2.15}
+    .hero-btn img{width:25px;filter:brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0,0,0,.45))}
+    .hero-btn.capsule{width:104px;border-radius:23px;background:rgba(255,255,255,.9);color:#1e1f21;box-shadow:0 2px 10px rgba(0,0,0,.09);font-size:19px;letter-spacing:4px;text-shadow:none}
+    .hero-btn.capsule b{font-size:25px;line-height:1;letter-spacing:-2px}
+    .hero-btn.capsule span{display:block;width:23px;height:23px;border:3px solid #1d1e20;border-radius:50%;font-size:0}
+    .gallery-tabs{position:absolute;left:18px;right:18px;bottom:14px;z-index:6;display:flex;align-items:center;gap:22px;color:#fff;font-size:16px;font-weight:650;text-shadow:0 1px 4px rgba(0,0,0,.65)}
+    .gallery-tabs button{padding:9px 0;background:transparent;color:inherit;cursor:pointer;white-space:nowrap}
+    .gallery-tabs button.active{padding:9px 14px;border-radius:8px;color:#222;background:#fff;text-shadow:none}
+    .gallery-tabs .gallery-more{font-size:22px;font-weight:400;margin-left:-14px}
+    .hotel-summary{margin-top:-1px;padding:22px 16px 0;background:#fff;border-radius:24px 24px 0 0}
+    .hotel-summary h1{color:#17181a;font-size:23px;line-height:1.3;letter-spacing:-1px}
+    .hotel-service-tags{gap:7px;margin-top:14px;padding-bottom:2px;overflow:hidden}
+    .hotel-service-tags .hotel-tag{height:30px;padding:0 11px;border:1px solid #d9dadd;border-radius:6px;color:#4d4e51;background:#fff;font-size:14px}
+    .hotel-service-tags .hotel-tag.featured{border-color:#edc7ca;color:var(--detail-red);background:#fff}
+    .hotel-summary-meta{align-items:center;gap:12px;margin-top:13px;padding-bottom:15px;color:#404145;font-size:15px;border-bottom:0}
+    .hotel-summary-meta span{flex:none}
+    .hotel-summary-meta:after{content:'设施/详情 ›';margin-left:auto;color:#26272a;font-size:15px;white-space:nowrap}
+    .rating-box{grid-template-columns:1fr 1.1fr;gap:0;margin:0 -16px;padding:0;border:0;border-radius:0;background:#fff}
+    .rating-copy{min-height:115px;padding:17px 12px 14px 24px;border:0;background:linear-gradient(135deg,#fff4f4,#fffafa);border-radius:0}
+    .rating-copy .rating-head{gap:9px}
+    .rating-copy .rating-head span{display:none}
+    .rating-copy strong{color:var(--detail-red);font-size:26px;font-weight:700}
+    .rating-copy b{color:var(--detail-red);font-size:15px}
+    .rating-copy p{margin:13px 0 0;color:#77787a;font-size:14px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+    .address-copy{min-height:115px;padding:18px 35px 14px 22px;border-left:1px solid #f2eeee;background:linear-gradient(135deg,#fffbf8,#fff);font-size:14px;line-height:1.45;position:relative}
+    .address-copy span:first-child{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .address-copy .pin{position:absolute;right:17px;top:21px;color:#131416}
+    .address-copy:after{content:'地图';position:absolute;right:18px;bottom:17px;color:#343537;font-size:14px}
+    .coupon-row{margin:0 -16px;padding:19px 25px 22px;border-top:10px solid var(--detail-bg);background:#fff4f4;font-size:16px}
+    .coupon-row strong{color:var(--detail-red);font-size:19px}
+    .coupon-row button{padding:10px 19px;border:0;border-radius:7px;color:#fff;background:var(--detail-red);font-size:16px;font-weight:650}
+    .member-level{padding:25px 16px 23px;background:#fff;border-top:10px solid var(--detail-bg)}
+    .member-title{display:flex;justify-content:space-between;align-items:center;font-size:20px;font-weight:750}
+    .member-title a{font-size:15px;font-weight:500;color:#303133}
+    .member-perks{margin-top:20px;color:#99703a;font-size:15px;white-space:nowrap;letter-spacing:.2px}
+    .member-perks i{font-style:normal;color:#d9d9d9;padding:0 10px}
+    .stay-reward{margin:0 16px 17px;padding:18px 17px 17px;border-radius:13px;background:linear-gradient(135deg,#fff8f7,#fff1f1);border:1px solid #f7e2e2;position:relative;overflow:hidden}
+    .stay-reward-head{display:flex;align-items:center;gap:9px;padding-right:92px}
+    .stay-reward-head strong{font-size:21px;white-space:nowrap}
+    .stay-reward-head span{padding:6px 8px;border-radius:5px;color:#8b7566;background:#fff3ef;font-size:13px;white-space:nowrap}
+    .stay-reward button{position:absolute;right:15px;top:20px;padding:11px 17px;border-radius:7px;color:#fff;background:var(--detail-red);font-size:16px;cursor:pointer}
+    .reward-steps{position:relative;display:flex;align-items:center;justify-content:space-between;gap:0;margin-top:15px;color:#c98288;font-size:12px;overflow:hidden}.reward-steps:before{content:'';position:absolute;left:14px;right:14px;top:13px;height:2px;background:#f5c4c6}
+    .reward-steps span{position:relative;display:grid;place-items:center;width:27px;height:27px;border-radius:50%;background:#ffe0e1}
+    .reward-steps span:not(:last-child):after{display:none}
+    .reward-steps span+span{margin-left:0}
+    .stay-reward-foot{margin-top:19px;color:#333;font-size:14px}.stay-reward-foot b{color:var(--detail-red);font-size:19px}
+    .detail-tabs{position:sticky;top:0;z-index:8;display:flex;justify-content:space-around;height:70px;background:#fff;border-top:1px solid #f0f0f0;border-bottom:1px solid #eeeeee}
+    .detail-tab{position:relative;min-width:30%;padding:20px 12px 15px;background:transparent;color:#777;font-size:18px;font-weight:600;cursor:pointer}
+    .detail-tab.active{color:#222}.detail-tab.active:after{content:'';position:absolute;left:50%;bottom:0;width:48px;height:4px;border-radius:4px;background:var(--detail-red);transform:translateX(-50%)}
+    .rooms-section{background:var(--detail-bg)}
+    .booking-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:23px 17px 16px;background:#fff}.booking-date{min-width:0;flex:1;font-size:clamp(16px,5.5vw,21px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.booking-date small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.room-mode{flex:none}
+    .booking-date{font-size:21px;font-weight:700;letter-spacing:-.5px}.booking-date small{display:block;margin-top:7px;color:#555;font-size:14px;font-weight:400}
+    .room-mode{display:flex;align-items:center;padding:4px;border-radius:23px;background:#f1f1f1;font-size:14px;font-weight:500}.room-mode button{padding:9px 13px;border-radius:20px;color:#555;background:transparent;cursor:pointer}.room-mode button.active{color:var(--detail-red);background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .room-card{position:relative;grid-template-columns:118px minmax(0,1fr);gap:14px;margin:0 16px 10px;padding:17px 14px 16px;border:0;border-radius:13px;background:#fff;box-shadow:none}
+    .room-card.featured{border:2px solid #edb6ba;padding:15px 12px 14px;box-shadow:0 5px 13px rgba(207,65,72,.07)}
+    .room-card.extra{display:none}.room-card.extra.show{display:grid}
+    .room-thumb{width:118px;height:132px;border-radius:9px}.room-thumb img{object-fit:cover}
+    .room-copy h3{margin:1px 0 8px;font-size:18px;color:#1b1c1f;line-height:1.2}.room-copy p{font-size:13px;color:#999;line-height:1.35;white-space:normal}
+    .room-breakfast{margin-top:9px;padding:5px 8px;border:0;border-radius:4px;color:var(--detail-red);background:#fff0f0;font-size:12px}
+    .room-price{margin-top:17px;color:var(--detail-red)}.room-price s{font-size:13px;color:#999}.room-price strong{font-size:29px}.room-price em{font-size:13px}
+    .room-discount{margin-top:5px;padding:3px 8px;color:var(--detail-red);background:#fff0f0;font-size:11px;text-align:right}
+    .room-subsidy{position:absolute;right:0;top:-1px;padding:5px 10px;border-radius:0 12px 0 12px;color:var(--detail-red);background:#fff0f0;font-size:11px}
+    .room-card .room-chevron{width:23px;height:23px;color:#222;border-color:#222}
+    .member-deal{margin:17px 16px 10px;padding:18px 16px 15px;background:#fff;border-radius:12px}
+    .member-deal h3{margin:0;color:#945e10;font-size:20px}.member-deal-banner{margin-top:13px;padding:17px 13px;border-radius:12px;background:linear-gradient(130deg,#fff9ea,#fffdf7);border:1px solid #f4ead6}.member-deal-banner strong{font-size:19px;color:#a47b35}.member-deal-banner b{color:var(--detail-red);font-size:20px}.member-deal-benefits{margin-top:10px;color:#a17f4e;font-size:12px}.member-deal-coupons{display:flex;gap:8px;margin-top:16px}.member-deal-coupons span{padding:7px 9px;border:1px solid #efd9bb;border-radius:6px;background:#fff7ef;color:#9d7b4d;font-size:11px}.deal-price{display:flex;align-items:center;justify-content:flex-end;gap:6px;margin-top:15px;color:var(--detail-red)}.deal-price s{color:#999}.deal-price strong{font-size:28px}.deal-price button{padding:10px 13px;border-radius:7px;color:#fff;background:var(--detail-red);font-size:14px}
+    .price-list{margin:0 16px 10px;padding:0 16px;background:#fff;border-radius:10px}.price-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 0;border-bottom:1px solid #ededed}.price-row:last-child{border-bottom:0}.price-row b{font-size:17px}.price-row small{display:block;margin-top:8px;color:#888;font-size:13px}.price-row .row-price{text-align:right;color:var(--detail-red)}.price-row .row-price span{display:block;color:#b55a60;font-size:12px}.price-row .row-price strong{font-size:26px}.price-row button{padding:10px 14px;border-radius:7px;color:#fff;background:var(--detail-red);font-size:15px}
+    .room-more{display:block;width:100%;padding:24px;border:0;text-align:center;color:#65666a;background:#fff;font-size:16px;cursor:pointer}.room-more-sold{cursor:default}
+    .detail-section{padding:24px 18px;background:#fff;border-top:10px solid var(--detail-bg)}
+    .detail-section h2{margin:0 0 22px;font-size:22px;color:#17181b}
+    .review-score{display:grid;grid-template-columns:106px 1fr;column-gap:19px;align-items:start}.review-score>strong{display:grid;place-items:center;height:112px;color:#fff;background:linear-gradient(#c73435 0 75%,#df001c 75%);font-size:46px;font-weight:500}.review-score>div:nth-child(2){display:grid;grid-template-columns:1fr 1fr;gap:15px 20px;padding-top:11px}.review-score>div:nth-child(2)>b{grid-column:1 / -1;color:var(--detail-red);font-size:20px}.review-score>div:nth-child(2)>span{display:none}.review-metrics{display:contents}.review-metrics span{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#777;font-size:14px}.review-metrics span:after{content:'';height:8px;flex:1;max-width:76px;border-radius:5px;background:var(--detail-red)}.review-metrics b{margin:0;color:var(--detail-red);font-size:15px}
+    .review-chips{flex-wrap:wrap;gap:8px;margin-top:22px}.review-chips span{padding:9px 12px;border:0;border-radius:0;color:#444;background:#f6f6f6;font-size:13px}
+    .review-card{margin-top:20px;padding:0;border:0;border-radius:0}.review-head{gap:10px}.review-avatar{width:42px;height:42px;background:#ffe7e8;color:#c93238}.review-user{font-size:14px}.review-user span{font-size:12px}.review-card p{margin:15px 0;color:#343538;font-size:15px;line-height:1.65}.review-gallery{grid-template-columns:repeat(3,1fr);gap:7px}.review-gallery div{height:77px;border-radius:8px}
+    .hotel-response{margin-top:20px;padding:15px 16px;background:#f7f8fb;color:#666;font-size:14px;line-height:1.55}.hotel-response b{color:#202124;font-size:16px}.hotel-response .response-more{float:right;color:#555;font-weight:700}
+    .review-actions{display:flex;justify-content:space-between;align-items:center;margin-top:17px;color:#333;font-size:14px}.review-actions button{padding:0;background:transparent;font-size:14px;cursor:pointer}
+    .policy{padding:27px 18px 32px;border-top:10px solid var(--detail-bg);color:#48494d;background:#fff;font-size:15px;line-height:1.75}.policy h3{margin:0 0 10px;color:#16171a;font-size:22px}.policy h4{margin:23px 0 5px;color:#202124;font-size:18px}.policy p{margin:0 0 10px}.hotel-detail-bottom{padding:9px 15px var(--safe-bottom);background:rgba(255,255,255,.98)}.hotel-detail-bottom .primary{border-radius:7px;background:var(--detail-red);font-size:16px}
+    @media(max-width:360px){.hotel-ad-head strong{font-size:14px}.hotel-card{grid-template-columns:86px minmax(0,1fr)}.hotel-front{width:86px;height:136px}.hotel-name{font-size:16px}.hotel-service-tags .hotel-tag{padding:0 8px;font-size:12px}.room-card{grid-template-columns:100px minmax(0,1fr);gap:10px;margin-left:12px;margin-right:12px}.room-thumb{width:100px;height:118px}.stay-reward-head strong{font-size:17px}.stay-reward-head span{display:none}}
+
+    /* 房型区域的最终响应式约束 */
+    .booking-toolbar{gap:10px}
+    .booking-date{min-width:0;flex:1;font-size:clamp(16px,5.5vw,21px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .booking-date small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .room-mode{flex:none}
+    .room-copy p{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    /* 首页酒店卡片：压缩配图并保持名称、豪华标签和评分同行 */
+    .hotel-ad .hotel-card{grid-template-columns:82px minmax(0,1fr);gap:10px;padding:13px 6px 1px}
+    .hotel-ad .hotel-front{width:82px;height:130px;border-radius:15px}
+    .hotel-ad .hotel-card-copy{min-width:0}
+    .hotel-ad .hotel-name-row{min-width:0;overflow:hidden;white-space:nowrap}
+    .hotel-ad .hotel-name{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:17px;line-height:1.3;letter-spacing:-.55px}
+    .hotel-ad .hotel-rating{gap:5px;margin-top:7px;min-width:0}
+    .hotel-ad .hotel-rating .luxury-badge{width:46px;height:auto;flex:none;object-fit:contain}
+    .hotel-ad .hotel-rating>img:not(.luxury-badge){width:30px;height:auto;flex:none}
+    .hotel-ad .hotel-rating b{min-width:0;font-size:11px;overflow:hidden;text-overflow:ellipsis}
+    .hotel-ad .hotel-tags{margin-top:9px}
+    .hotel-ad .hotel-price{margin-top:13px}
+    /* 详情页紧凑布局：移除固定底部操作栏后的留白，并收窄按钮与区块间距 */
+    .hotel-detail-scroll{padding-bottom:0}
+    .hotel-detail-nav{padding:0 11px}
+    .hotel-detail-nav .left,.hotel-detail-nav .right{gap:5px}
+    .hero-btn{width:34px;height:34px}
+    .hero-btn svg{width:22px;height:22px}
+    .hero-btn img{width:22px}
+    .hero-btn.capsule{width:88px;height:34px;font-size:16px;letter-spacing:2px}
+    .hero-btn.capsule b{font-size:21px;letter-spacing:-2px}
+    .hero-btn.capsule span{width:19px;height:19px;border-width:2px}
+    /* 详情页顶部系统栏与小程序导航固定在应用顶部；更多胶囊内的两个图标横向对齐 */
+    .hotel-detail-nav{position:fixed;left:0;right:0;top:0;z-index:11;padding-top:max(12px,env(safe-area-inset-top))}
+    .hero-btn.capsule{display:grid;place-items:center;width:87px;height:30px;padding:0;border-radius:0;background:transparent;box-shadow:none;gap:0}
+    .hero-btn.capsule img{display:block;width:87px;height:30px;object-fit:contain;filter:none}
+    #detailView.header-scrolled .hotel-detail-nav{background:rgba(255,255,255,.96);box-shadow:0 1px 8px rgba(0,0,0,.08);backdrop-filter:blur(10px)}
+    #detailView.header-scrolled .hero-btn{color:#2d3136;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06);text-shadow:none}
+    #detailView.header-scrolled .hero-btn img{filter:none}
+    .gallery-tabs{left:16px;right:16px;bottom:11px;gap:16px;font-size:14px}
+    .gallery-tabs button{padding:7px 0}
+    .gallery-tabs button.active{padding:7px 11px;border-radius:7px}
+    .hotel-summary{padding:18px 16px 0}
+    .hotel-summary h1{font-size:21px}
+    .hotel-service-tags{gap:6px;margin-top:11px}
+    .hotel-service-tags .hotel-tag{height:26px;padding:0 9px;font-size:12px}
+    .hotel-summary-meta{gap:10px;margin-top:10px;padding-bottom:12px;font-size:13px}
+    .hotel-summary-meta:after{font-size:13px}
+    .rating-copy{min-height:100px;padding:14px 11px 12px 18px}
+    .rating-copy strong{font-size:24px}
+    .rating-copy b{font-size:14px}
+    .rating-copy p{margin-top:10px;font-size:13px}
+    .address-copy{min-height:100px;padding:15px 31px 12px 18px;font-size:13px}
+    .address-copy .pin{right:14px;top:17px}
+    .address-copy:after{right:15px;bottom:13px;font-size:13px}
+    .coupon-row{padding:15px 20px 17px;font-size:14px}
+    .coupon-row strong{font-size:18px}
+    .coupon-row button{padding:8px 14px;border-radius:6px;font-size:14px}
+    .member-level{padding:20px 16px 18px}
+    .member-title{font-size:18px}
+    .member-title a{font-size:13px}
+    .member-perks{margin-top:14px;font-size:13px}
+    .member-perks i{padding:0 7px}
+    .stay-reward{margin:0 14px 14px;padding:15px 15px 14px}
+    .stay-reward-head{gap:7px;padding-right:82px}
+    .stay-reward-head strong{font-size:18px}
+    .stay-reward-head span{padding:5px 7px;font-size:12px}
+    .stay-reward button{right:13px;top:17px;padding:8px 13px;border-radius:6px;font-size:14px}
+    .reward-steps{margin-top:13px}
+    .stay-reward-foot{margin-top:15px;font-size:13px}
+    .stay-reward-foot b{font-size:17px}
+    .detail-tabs{height:58px}
+    .detail-tab{padding:16px 10px 12px;font-size:16px}
+    .detail-tab.active:after{width:40px;height:3px}
+    .booking-toolbar{padding:18px 15px 13px}
+    .booking-date{font-size:19px}
+    .booking-date small{margin-top:5px;font-size:12px}
+    .room-mode{padding:3px;font-size:13px}
+    .room-mode button{padding:7px 10px}
+    .room-card{grid-template-columns:110px minmax(0,1fr);gap:12px;margin:0 14px 8px;padding:14px 12px 13px}
+    .room-card.featured{padding:12px 10px 12px}
+    .room-thumb{width:110px;height:120px}
+    .room-copy h3{margin:1px 0 6px;font-size:16px}
+    .room-copy p{font-size:12px}
+    .room-breakfast{margin-top:7px;padding:4px 7px;font-size:11px}
+    .room-price{margin-top:13px}
+    .room-price strong{font-size:26px}
+    .room-discount{margin-top:4px;padding:2px 7px}
+    .room-subsidy{padding:4px 8px;font-size:10px}
+    .member-deal{margin:14px 14px 8px;padding:15px 14px 13px}
+    .member-deal h3{font-size:18px}
+    .member-deal-banner{margin-top:10px;padding:14px 11px}
+    .member-deal-banner strong{font-size:17px}
+    .member-deal-benefits{margin-top:8px;font-size:11px}
+    .member-deal-coupons{gap:6px;margin-top:12px}
+    .member-deal-coupons span{padding:6px 7px;font-size:10px}
+    .deal-price{gap:5px;margin-top:12px}
+    .deal-price strong{font-size:25px}
+    .deal-price button{padding:8px 11px;font-size:13px}
+    .price-list{margin:0 14px 8px;padding:0 14px}
+    .price-row{gap:8px;padding:14px 0}
+    .price-row b{font-size:15px}
+    .price-row small{margin-top:6px;font-size:12px}
+    .price-row .row-price strong{font-size:23px}
+    .price-row button{padding:8px 11px;font-size:14px}
+    .room-more{padding:17px;font-size:14px}
+    .detail-section{padding:20px 16px;border-top-width:8px}
+    .detail-section h2{margin-bottom:17px;font-size:20px}
+    .review-chips{margin-top:17px}
+    .review-card{margin-top:16px}
+    .review-card p{margin:12px 0;font-size:14px}
+    .hotel-response{margin-top:16px;padding:13px 14px;font-size:13px}
+    .policy{padding:22px 16px 28px;font-size:14px}
+    .hotel-detail-bottom{display:none!important}
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="太原公交智能体（酒店场景）商业化演示">
+    <section class="view active" id="homeView" aria-label="智能体首页">
+      <div class="scroll" id="homeScroll">
+        <header class="topbar">
+          <img class="avatar" src="assets/avatar.jpg" alt="太原公交智能体头像" />
+          <div class="agent-title"><strong>太原公交智能体</strong></div>
+          <div class="top-actions">
+            <button class="icon-btn" id="soundBtn" aria-label="播报开关"><img src="assets/header-sound-icon.png" alt="" /></button>
+            <button class="icon-btn" id="moreBtn" aria-label="更多功能"><img src="assets/header-capsule.png" alt="" /></button>
+          </div>
+        </header>
+        <div class="content">
+          <section class="wifi-card" aria-label="公交网络">
+            <div class="wifi-copy"><div class="wifi-route-line"><strong>太原市区公交</strong></div><span>TaiYuan Transit</span></div>
+            <button class="wifi-connect" id="wifiBtn"><img src="assets/wifi-icon.png" alt="" /><span>连接 WiFi</span></button>
+          </section>
+          <section class="bus-card" aria-label="太原市区公交实时信息">
+            <div class="route-top"><div><div class="route-dest">开往 · 迎泽大街</div><div class="route-next">下一站 <b>省委站（约3分钟）</b></div></div><button class="remind-btn set" id="remindBtn">已设提醒</button></div>
+            <div class="route-track" aria-label="太原市区公交站点线路轴，可左右滑动查看更多站点"><div class="route-viewport"><div class="route-rail"><div class="route-line"></div><span class="bus-emoji" aria-hidden="true">🚌</span><div class="route-stop passed label-bottom" style="--x:30px"><span class="station-name">青年路</span></div><div class="route-stop current label-top" style="--x:150px"><span class="station-name">并州路</span></div><div class="route-stop label-bottom" style="--x:270px"><span class="station-name">迎泽大街</span></div><div class="route-stop label-top" style="--x:390px"><span class="station-name">省委站</span></div><div class="route-stop destination label-bottom" style="--x:510px"><span class="station-name">酒店站</span><span class="destination-tag">目的地</span></div><div class="route-stop label-top" style="--x:630px"><span class="station-name">新建南路</span></div><div class="route-stop label-bottom" style="--x:750px"><span class="station-name">府西街</span></div></div></div></div>
+          </section>
+          <section class="hotel-ad" id="hotelAd" tabindex="0" role="button" aria-label="打开太原市迎泽大街省委兰欧国际酒店详情">
+            <div class="hotel-ad-head"><img src="assets/ai-spark.png" alt="" /><strong>累了吧？到附近人气NO.1的兰欧国际歇歇脚</strong></div>
+            <div class="hotel-card">
+              <img class="hotel-front" src="assets/hotel-front-taiyuan.png" alt="太原市迎泽大街省委兰欧国际酒店" />
+              <div class="hotel-card-copy"><div class="hotel-name-row"><h2 class="hotel-name">太原市迎泽大街省委兰欧国际酒店</h2></div><div class="hotel-rating"><img class="luxury-badge" src="assets/luxury-badge.png" alt="豪华" /><img src="assets/rating-50.png" alt="5.0分" /><b>超棒·381点评“早餐好”</b></div><div class="hotel-tags"><span class="hotel-tag">会员早餐</span><span class="hotel-tag">住五送一</span><span class="hotel-tag">延时退房</span></div><div class="hotel-price"><s>¥360</s><strong>¥342</strong><em>起</em></div></div>
+              <button class="hotel-favorite" type="button" id="hotelFavorite" aria-label="收藏酒店"><img src="assets/favorite.png" alt="" /><span>收藏</span></button>
+            </div>
+          </section>
+          <div class="section-heading-row"><h2 class="section-kicker">在车上，问点有用的</h2></div>
+          <div class="query-list" id="queryList">
+            <button class="query query-landmark rotatable" data-question="沿途有什么值得看的地标" data-type="landmark"><img class="query-icon" src="assets/icon-scenic.png" alt="景区" /><span class="query-text">沿途有什么值得看的地标</span><span class="chev">›</span></button>
+            <button class="query query-route rotatable" data-question="到火车站怎么换乘" data-type="route"><img class="query-icon" src="assets/icon-transit.png" alt="出行" /><span class="query-text">到火车站怎么换乘</span><span class="chev">›</span></button>
+            <button class="query query-food rotatable" data-question="我的目的站有什么好吃的" data-type="food"><img class="query-icon" src="assets/icon-food.png" alt="餐饮" /><span class="query-text">我的目的站有什么好吃的</span><span class="chev">›</span></button>
+            <button class="query query-hotel rotatable" data-question="附近有什么好的酒店推荐" data-type="hotel"><img class="query-icon" src="assets/icon-transit.png" alt="住宿" /><span class="query-text">附近有什么好的酒店推荐</span><span class="chev">›</span></button>
+          </div>
+          <div id="homeReply" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="composer-wrap"><form class="composer" id="homeComposer"><button class="voice-btn" type="button" data-voice aria-label="语音输入"><img src="assets/voice-icon.png" alt="" /></button><input id="homeInput" autocomplete="off" placeholder="附近有什么好的酒店推荐" aria-label="向智能体提问" /></form></div>
+    </section>
+
+    <section class="view" id="chatView" aria-label="智能体回复页">
+      <header class="chat-head"><button class="back-btn" id="chatBack" aria-label="返回首页"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><img class="avatar" src="assets/avatar.jpg" alt="" /><div class="chat-title"><strong>太原公交智能体</strong><span>结合实时公交为你回答</span></div><button class="icon-btn" id="chatSound" aria-label="播报"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15 9.5a4 4 0 0 1 0 5M18 7a7 7 0 0 1 0 10"/></svg></button></header>
+      <div class="scroll chat-scroll" id="chatScroll"><section class="bus-card" aria-label="实时公交信息"><div class="route-top"><div><div class="route-dest">开往 · 迎泽大街</div><div class="route-next">下一站 <b>省委站（约3分钟）</b></div></div><button class="remind-btn set mini-remind">已设提醒</button></div><div class="route-track"><div class="route-viewport"><div class="route-rail"><div class="route-line"></div><span class="bus-emoji">🚌</span><div class="route-stop current label-top" style="--x:150px"><span class="station-name">并州路</span></div><div class="route-stop label-bottom" style="--x:270px"><span class="station-name">迎泽大街</span></div><div class="route-stop destination label-top" style="--x:390px"><span class="station-name">省委站</span></div><div class="route-stop label-bottom" style="--x:510px"><span class="station-name">酒店站</span></div></div></div></div></section><div id="conversation"></div></div>
+      <div class="composer-wrap"><form class="composer" id="chatComposer"><button class="voice-btn" type="button" data-voice aria-label="语音输入"><img src="assets/voice-icon.png" alt="" /></button><input id="chatInput" autocomplete="off" placeholder="继续问我，例如“附近有什么好的酒店”" aria-label="继续提问" /></form></div>
+    </section>
+
+    <section class="view" id="detailView" aria-label="太原市迎泽大街省委兰欧国际酒店详情">
+      <div class="scroll hotel-detail-scroll" id="detailScroll">
+        <section class="hotel-hero">
+          <img src="assets/taiyuan-hotel-front.jpg" alt="太原市迎泽大街省委兰欧国际酒店外观" />
+          <nav class="hotel-detail-nav">
+            <div class="left"><button class="hero-btn" id="detailBack" aria-label="返回智能体"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button></div>
+            <div class="right"><button class="hero-btn" data-toast="已打开酒店联系入口" aria-label="联系酒店"><svg viewBox="0 0 24 24"><path d="M6 3h4l2 5-3 2c1.6 3.3 2.7 4.4 6 6l2-3 5 2v4c0 1.1-.9 2-2 2C10.6 21 3 13.4 3 4c0-1.1.9-2 2-1z"/></svg></button><button class="hero-btn" id="detailFavorite" aria-label="收藏酒店"><img src="assets/favorite.png" alt="" /></button><button class="hero-btn" data-toast="演示链接已复制" aria-label="分享"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="19" r="2"/><path d="m8 11 8-5M8 13l8 5"/></svg></button><button class="hero-btn capsule" data-toast="更多酒店服务已打开" aria-label="更多"><img src="assets/header-capsule.png" alt="" /></button></div>
+          </nav>
+          <div class="gallery-tabs" role="tablist"><button class="active" data-toast="正在查看酒店外观">外观</button><button data-toast="正在查看公共区域">公共</button><button data-toast="正在查看餐饮空间">餐饮</button><button data-toast="正在查看休闲设施">休闲</button><button data-toast="正在查看酒店相册">相册</button><span class="gallery-more">›</span></div>
+        </section>
+        <section class="hotel-summary">
+          <h1>太原市迎泽大街省委兰欧国际酒店</h1>
+          <div class="hotel-service-tags"><span class="hotel-tag featured">心选酒店</span><span class="hotel-tag">会员早餐</span><span class="hotel-tag">住五送一</span><span class="hotel-tag">房型升级</span><span class="hotel-tag">多倍积分</span><span class="hotel-tag">延时退房</span></div>
+          <div class="hotel-summary-meta"><span>2026装修</span><span>2026开业</span></div>
+          <div class="rating-box"><div class="rating-copy"><div class="rating-head"><strong>5.0</strong><b>超棒</b></div><p>服务很好，交通便利，干净整洁…</p><span class="rating-count">466条点评 ›</span></div><div class="address-copy"><span>山西省太原市迎泽区迎泽街道新建南路8号负…</span><span class="pin" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 21.5s-7.2-5.6-7.2-11.2A7.2 7.2 0 0 1 12 3a7.2 7.2 0 0 1 7.2 7.3C19.2 15.9 12 21.5 12 21.5z"/><circle cx="12" cy="10.2" r="2.7"/></svg></span></div></div>
+          <div class="coupon-row"><span><strong>20元</strong> 专属优惠券</span><button data-toast="优惠券已放入卡包">立即领取</button></div>
+        </section>
+        <section class="member-level"><div class="member-title"><span>小美卡等级</span><a>更多权益 ›</a></div><div class="member-perks">充值无忧 <i>|</i> 订房9.5折 <i>|</i> 积分累积 <i>|</i> 积分抵现</div></section>
+        <section class="stay-reward"><div class="stay-reward-head"><strong>全日房住5送1</strong><span>每住1晚返现15%</span></div><button data-toast="权益领取成功">去领取</button><div class="reward-steps"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div><div class="stay-reward-foot">已累计 <b>¥0</b>（住满解锁）</div></section>
+        <nav class="detail-tabs" id="detailTabs"><button class="detail-tab active" data-detail-target="roomsSection">房型</button><button class="detail-tab" data-detail-target="reviewsSection">详情</button><button class="detail-tab" data-detail-target="policySection">更多</button></nav>
+        <section class="rooms-section" id="roomsSection">
+          <div class="booking-toolbar"><div class="booking-date">08月20日 — 08月21日<small>周四入住　　　 周五离店</small></div><div class="room-mode"><button class="active">全日房</button><button>时租房</button></div></div>
+          <article class="room-card featured" data-room="舒睡经典大床房"><span class="room-subsidy">购卡预订平台补贴 ¥23</span><div class="room-thumb"><img src="assets/room-classic-taiyuan.jpg" alt="舒睡经典大床房" /></div><div class="room-copy"><div class="room-title-row"><div><h3>舒睡经典大床房 ›</h3><p>22.0㎡｜无窗｜可住2人｜1张1.8米床</p></div><span class="room-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div><span class="room-breakfast">房量紧张</span><div class="room-price"><s>¥360</s><span>¥</span><strong>342</strong><em>起</em></div><span class="room-discount">立省¥18</span></div></article>
+          <section class="member-deal"><h3>小美金卡专享价 ›</h3><div class="member-deal-banner"><strong>升级小美金卡，本单<b>再减¥1</b></strong><span class="member-deal-benefits">✓ 赠1份早餐　✓ 房费8.5折　✓ 1倍积分累积</span><div class="member-deal-coupons"><span>赠 ¥20优惠券×1</span><span>¥10优惠券×8</span><span>¥10红包×1</span></div><div class="deal-price"><span>平台补贴价</span><s>¥360</s><strong>¥341</strong><button data-toast="已选择购卡预订">购卡预订</button></div></div></section>
+          <div class="price-list"><div class="price-row"><div><b>单店住5送1</b><small>不含早｜限时免费取消</small></div><div class="row-price"><span>仅剩3间</span><s>¥360</s> <strong>¥342</strong><button data-toast="已选择预订舒睡经典大床房">订</button></div></div><div class="price-row"><div><b>小美卡会员价 ›</b><small>不含早｜限时免费取消</small></div><div class="row-price"><span>仅剩3间</span><s>¥360</s> <strong>¥342</strong><button data-toast="已选择会员价预订">订</button></div></div></div>
+          <button class="room-more" id="roomMore" type="button" aria-expanded="true">收起⌃</button>
+          <article class="room-card extra show" data-room="城景高级大床房"><div class="room-thumb"><img src="assets/room-city-high-taiyuan.jpg" alt="城景高级大床房" /></div><div class="room-copy"><div class="room-title-row"><div><h3>城景高级大床房 ›</h3><p>30.0㎡｜外窗｜可住2人｜1张1.8米床</p></div><span class="room-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div><span class="room-breakfast">房量紧张</span><div class="room-price"><s>¥413</s><span>¥</span><strong>392</strong><em>起</em></div><span class="room-discount">立省¥21</span></div></article>
+          <article class="room-card extra show" data-room="城景行政大床房"><div class="room-thumb"><img src="assets/room-city-executive-taiyuan.jpg" alt="城景行政大床房" /></div><div class="room-copy"><div class="room-title-row"><div><h3>城景行政大床房 ›</h3><p>40.0㎡｜外窗｜可住2人｜1张1.8米床</p></div><span class="room-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div><span class="room-breakfast">房量紧张</span><div class="room-price"><s>¥446</s><span>¥</span><strong>424</strong><em>起</em></div><span class="room-discount">立省¥22</span></div></article>
+          <article class="room-card extra show" data-room="行政套房"><div class="room-thumb"><img src="assets/room-suite-taiyuan.jpg" alt="行政套房" /></div><div class="room-copy"><div class="room-title-row"><div><h3>行政套房 ›</h3><p>75.0㎡｜外窗｜可住2人｜1张1.8米床</p></div><span class="room-chevron" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span></div><span class="room-breakfast">房量紧张</span><div class="room-price"><s>¥1119</s><span>¥</span><strong>1009</strong><em>起</em></div><span class="room-discount">立省¥110</span></div></article>
+          <div class="room-more room-more-sold">剩余6房型已订完</div>
+        </section>
+        <section class="detail-section" id="reviewsSection"><h2>房客评价</h2><div class="review-score"><strong>5.0</strong><div><b>超棒</b><div class="review-metrics"><span>设施<b>5.0</b></span><span>服务<b>5.0</b></span><span>卫生<b>5.0</b></span><span>环境<b>5.0</b></span></div></div></div><div class="review-chips"><span>服务很好 (188)</span><span>交通便利 (87)</span><span>干净整洁 (84)</span><span>安静舒适 (78)</span><span>停车便利 (56)</span></div><article class="review-card"><div class="review-head"><span class="review-avatar">●</span><div class="review-user"><b>黄**</b><span>2026.07入住｜舒睡经典双床房</span></div></div><p>住兰欧国际这家酒店体验真的舒服，位置很好找，出门去哪都方便，一进门就有欢迎茶，前台办入住也快。房间收拾得干干净净，都是智能设备，床睡…</p><div class="review-gallery"><div><img src="assets/taiyuan-lobby-wide.jpg" alt="酒店大堂" /></div><div><img src="assets/taiyuan-lobby.jpg" alt="酒店公共空间" /></div><div><img src="assets/taiyuan-service.jpg" alt="酒店服务" /></div><div><img src="assets/taiyuan-breakfast.jpg" alt="自助早餐" /></div><div><img src="assets/taiyuan-hotel-exterior.jpg" alt="酒店外观" /></div></div></article><div class="hotel-response"><b>酒店回复：</b>感谢您对酒店的认可与推荐！很开心您喜欢我们的服务、位置、智能设施和干净客房…<span class="response-more">展开⌄</span></div><div class="review-actions"><span>♡ 有用</span><button data-toast="已打开全部466条评价">查看466条评价 ›</button></div></section>
+        <section class="policy" id="policySection"><h3>酒店政策</h3><h4>入住时间</h4><p>最早入住时间 08:00:00　最晚离店时间 08:00:00</p><h4>儿童政策</h4><p>不接受未成年人入住</p><h4>宠物政策</h4><p>不可携带宠物</p></section>
+      </div>
+
+    </section>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </main>
+  <script>
+    (() => {
+      'use strict';
+      const $ = (s, root = document) => root.querySelector(s);
+      const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+      const homeView = $('#homeView'), chatView = $('#chatView'), detailView = $('#detailView');
+      const homeScroll = $('#homeScroll'), chatScroll = $('#chatScroll'), conversation = $('#conversation'), homeReply = $('#homeReply'), toast = $('#toast');
+      let activeView = homeView, soundOn = false, answerTimer = null, toastTimer = null, favorite = false, rotateOffset = 0;
+      const escapeHTML = value => String(value).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+      function showView(next, direction = 'forward') { if (next === activeView) return; const prev = activeView; if (next === homeView) homeScroll.scrollTo({top:0,behavior:'auto'}); if (direction === 'back') next.style.transform = 'translateX(-18px)'; next.classList.add('active'); requestAnimationFrame(() => { next.style.transform = ''; prev.classList.add('leaving'); }); setTimeout(() => { prev.classList.remove('active','leaving'); activeView = next; }, 300); }
+      function showToast(message) { clearTimeout(toastTimer); toast.textContent = message; toast.classList.add('show'); toastTimer = setTimeout(() => toast.classList.remove('show'), 1900); }
+      function toggleFavorite() { favorite = !favorite; $$('[id$="Favorite"],#hotelFavorite,#bottomFavorite').forEach(btn => btn?.classList.toggle('active', favorite)); showToast(favorite ? '已收藏太原市迎泽大街省委兰欧国际酒店' : '已取消收藏'); }
+      function setReminder(enabled) { $$('.remind-btn').forEach(btn => { btn.classList.toggle('set', enabled); btn.textContent = enabled ? '已设提醒' : '设置提醒'; }); }
+      $$('.remind-btn').forEach(btn => btn.onclick = () => { const enabled = !btn.classList.contains('set'); setReminder(enabled); showToast(enabled ? '已设置酒店站到站提醒' : '已取消到站提醒'); });
+      $('#wifiBtn').onclick = e => { const btn = e.currentTarget, on = btn.classList.toggle('connected'); $('span', btn).textContent = on ? '已连接' : '连接 WiFi'; showToast(on ? '已连接 TaiYuan Transit WiFi' : 'WiFi 已断开'); };
+      function toggleSound() { soundOn = !soundOn; $$('#soundBtn,#chatSound').forEach(btn => btn.classList.toggle('active', soundOn)); showToast(soundOn ? '语音播报已开启' : '语音播报已关闭'); if (!soundOn && 'speechSynthesis' in window) speechSynthesis.cancel(); }
+      $('#soundBtn').onclick = toggleSound; $('#chatSound').onclick = toggleSound; $('#moreBtn').onclick = () => showToast('支持线路、实时公交、酒店推荐与到站提醒');
+      $('#detailBack').onclick = () => showView(homeView, 'back'); $('#chatBack').onclick = () => showView(homeView, 'back'); $('#hotelAd').onclick = openDetail; $('#hotelAd').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') openDetail(); };
+      $('#hotelFavorite').onclick = e => { e.stopPropagation(); toggleFavorite(); }; $('#detailFavorite').onclick = toggleFavorite;
+      const roomMore = $('#roomMore'); roomMore.onclick = () => { const expanded = $$('.room-card.extra').some(room => room.classList.contains('show')); $$('.room-card.extra').forEach(room => room.classList.toggle('show', !expanded)); roomMore.setAttribute('aria-expanded', String(!expanded)); roomMore.textContent = expanded ? '展开房型⌄' : '收起⌃'; }; $$('.detail-tab').forEach(tab => tab.onclick = () => { $$('.detail-tab').forEach(item => item.classList.toggle('active', item === tab)); const target = $('#' + tab.dataset.detailTarget); if (target) $('#detailScroll').scrollTo({top:target.offsetTop - 70,behavior:'smooth'}); }); $$('.room-card[data-room]').forEach(room => room.onclick = e => { if (e.target.closest('button')) return; showToast('已选择' + room.dataset.room + '，可在底部查看房型'); });
+      $$('[data-toast]').forEach(el => el.onclick = () => showToast(el.dataset.toast));
+      const queryPool = [
+        {q:'沿途有什么值得看的地标',type:'landmark',icon:'assets/icon-scenic.png',alt:'景区',cls:'query-landmark'},
+        {q:'到火车站怎么换乘',type:'route',icon:'assets/icon-transit.png',alt:'出行',cls:'query-route'},
+        {q:'我的目的站有什么好吃的',type:'food',icon:'assets/icon-food.png',alt:'餐饮',cls:'query-food'},
+        {q:'附近有什么好的酒店推荐',type:'hotel',icon:'assets/icon-transit.png',alt:'住宿',cls:'query-hotel'},
+        {q:'这趟车还有多久到酒店站',type:'arrival',icon:'assets/icon-transit.png',alt:'出行',cls:'query-route'},
+        {q:'太原市区公交末班车是几点',type:'schedule',icon:'assets/icon-transit.png',alt:'出行',cls:'query-route'},
+        {q:'到站前提醒我下车',type:'reminder',icon:'assets/icon-transit.png',alt:'出行',cls:'query-route'}
+      ];
+      $$('.query').forEach(btn => btn.onclick = () => ask(btn.dataset.question, btn.dataset.type));
+      function rotateQueries() { if (activeView !== homeView || document.hidden) return; const slots = $$('.rotatable'); slots.forEach(el => el.classList.add('rotating-out')); setTimeout(() => { rotateOffset = (rotateOffset + 1) % queryPool.length; slots.forEach((el,i) => { const item = queryPool[(rotateOffset+i)%queryPool.length]; el.className = `query rotatable ${item.cls} rotating-out`; el.dataset.question = item.q; el.dataset.type = item.type; const icon = $('.query-icon',el); icon.src = item.icon; icon.alt = item.alt; $('.query-text',el).textContent = item.q; }); requestAnimationFrame(() => slots.forEach(el => el.classList.remove('rotating-out'))); },260); }
+      setInterval(rotateQueries, 3800);
+      const answers = { landmark:['沿途地标推荐','迎泽大街沿线可顺路看到迎泽公园、山西博物院与汾河景观带，建议在酒店站下车后步行前往。','🚌 建议酒店站下车'], route:['去火车站这样换乘','在省委站下车后步行约180米，到迎泽大街口站换乘，预计28分钟到达太原火车站。','全程约38分钟 · ¥2'], food:['目的站附近美食','酒店站附近有晋菜小馆、面食餐厅和商圈美食，步行 5–10 分钟可到，适合入住前先解决晚餐。','查看3家附近餐厅 ›'], hotel:['附近酒店推荐','结合实时公交与目的地位置，为你推荐太原市迎泽大街省委兰欧国际酒店，靠近省委与迎泽大街，5.0分超棒，当前房型¥342起。','点击查看酒店详情 ›'], arrival:['预计3分钟到站','车辆已驶过并州路，距离省委站约620米。按当前车速约3分钟抵达，到酒店站预计还需9分钟。','已开启实时刷新'], schedule:['太原市区公交运营时间','开往迎泽大街方向首班06:20、末班21:30，工作日高峰约8–12分钟一班。','末班车还有2小时15分'], reminder:['到站提醒已设置','将在抵达酒店站前1站通过声音和震动提醒你，当前预计还有9分钟。','✓ 酒店站 · 提前1站提醒'], default:['我来帮你看看','这是商业演示中的模拟回答。你可以问我实时到站、换乘、沿途美食，或输入“附近有什么好的酒店推荐”。','试试：附近有什么好的酒店推荐']};
+      function hotelAnswerCard() { return `<article class="hotel-ad" id="replyHotelCard" tabindex="0" role="button" aria-label="查看太原市迎泽大街省委兰欧国际酒店详情"><div class="hotel-ad-head"><img src="assets/ai-spark.png" alt="" /><strong>为你找到：附近人气 NO.1 的兰欧</strong></div><div class="hotel-card"><img class="hotel-front" src="assets/hotel-front-taiyuan.png" alt="兰欧酒店" /><div class="hotel-card-copy"><h2 class="hotel-name">太原市迎泽大街省委兰欧国际酒店</h2><div class="hotel-rating"><img class="luxury-badge" src="assets/luxury-badge.png" alt="豪华" /><img src="assets/rating-50.png" alt="5.0分" /><b>超棒 · 381点评</b></div><div class="hotel-tags"><span class="hotel-tag">会员早餐</span><span class="hotel-tag">住五送一</span></div><div class="hotel-price"><s>¥360</s><strong>¥342</strong><em>起</em></div></div><span class="arrow-circle" aria-hidden="true">›</span></div><button class="detail-link" id="replyHotelDetail" type="button">查看详情 ›</button></article>`; }
+      function textAnswer(type) { const a = answers[type] || answers.default; return `<div class="text-answer"><h3>${escapeHTML(a[0])}</h3><div>${escapeHTML(a[1])}</div><span class="answer-chip">${escapeHTML(a[2])}</span></div><div class="followups"><button data-follow="hotel">附近酒店</button><button data-follow="arrival">还有多久到站</button><button data-follow="reminder">设置下车提醒</button></div>`; }
+      function bindReply(root) { const card = $('#replyHotelCard',root); if (card) { card.onclick = openDetail; card.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') openDetail(); }; $('#replyHotelDetail',root).onclick = e => { e.stopPropagation(); openDetail(); }; } $$('[data-follow]',root).forEach(btn => btn.onclick = () => { const type = btn.dataset.follow; const item = queryPool.find(x => x.type === type); ask(item?.q || btn.textContent,type); }); }
+      function showHomeReply(question,type) { homeReply.innerHTML = `<div class="user-msg"><div class="user-bubble">${escapeHTML(question)}</div></div><div class="typing"><i></i><i></i><i></i></div>`; homeScroll.scrollTo({top:homeScroll.scrollHeight,behavior:'smooth'}); answerTimer = setTimeout(() => { const content = type === 'hotel' ? hotelAnswerCard() : textAnswer(type); homeReply.innerHTML = `<div class="user-msg"><div class="user-bubble">${escapeHTML(question)}</div></div>${content}`; bindReply(homeReply); homeScroll.scrollTo({top:homeScroll.scrollHeight,behavior:'smooth'}); if (soundOn && 'speechSynthesis' in window) speechSynthesis.speak(new SpeechSynthesisUtterance((answers[type] || answers.hotel)[1])); },420); }
+      function ask(question,type='default') { clearTimeout(answerTimer); if (activeView !== homeView) showView(homeView,'back'); showHomeReply(question,type); }
+      function syncDetailHeader() { if (!detailView || !detailScroll) return; detailView.classList.toggle('header-scrolled', detailScroll.scrollTop > 8); }
+      detailScroll.addEventListener('scroll', syncDetailHeader, {passive:true});
+      function openDetail() { $('#detailScroll').scrollTop = 0; detailView.classList.remove('header-scrolled'); showView(detailView); }
+      function bindComposer(form,input) { form.addEventListener('submit', e => { e.preventDefault(); const value=input.value.trim(); if(!value){input.focus();return} input.value=''; let type='default'; if(value.includes('酒店')||value.includes('住宿')||value.includes('兰欧')) type='hotel'; else if(value.includes('多久')||value.includes('到站')) type='arrival'; else if(value.includes('提醒')) type='reminder'; else if(value.includes('末班')||value.includes('几点')) type='schedule'; else if(value.includes('换乘')||value.includes('火车站')) type='route'; else if(value.includes('吃')||value.includes('美食')) type='food'; else if(value.includes('地标')||value.includes('景区')) type='landmark'; ask(value,type); }); }
+      bindComposer($('#homeComposer'),$('#homeInput')); bindComposer($('#chatComposer'),$('#chatInput'));
+      $$('[data-voice]').forEach(btn => btn.onclick = () => { const form=btn.closest('form'),input=$('input',form); btn.classList.add('listening'); input.placeholder='正在聆听…'; setTimeout(() => { btn.classList.remove('listening'); input.value='附近有什么好的酒店推荐'; input.placeholder=form.id==='homeComposer'?'附近有什么好的酒店推荐':'继续问我，例如“附近有什么好的酒店”'; showToast('已识别：附近有什么好的酒店推荐'); },1050); });
+      window.addEventListener('keydown', e => { if(e.key!=='Escape') return; if(activeView===detailView) showView(homeView,'back'); else if(activeView===chatView) showView(homeView,'back'); });
+    })();
+  </script>
+</body>
+</html>
