@@ -254,6 +254,29 @@
     .hotel-response{margin-top:16px;padding:13px 14px;font-size:13px}
     .policy{padding:22px 16px 28px;font-size:14px}
     .hotel-detail-bottom{display:none!important}
+      /* 连网弹窗：底部抽屉 + 遮罩，状态行(连接中/连接成功) + 4条问题轮动。 */
+    .wifi-mask{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.45);opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s}
+    .wifi-mask.show{opacity:1;visibility:visible}
+    .wifi-sheet{position:absolute;left:0;right:0;bottom:0;z-index:31;padding:20px 20px calc(22px + env(safe-area-inset-bottom));background:#fff;border-radius:22px 22px 0 0;transform:translateY(105%);transition:transform .32s cubic-bezier(.22,.75,.25,1);box-shadow:0 -12px 40px rgba(0,0,0,.14)}
+    .wifi-sheet.show{transform:translateY(0)}
+    .wifi-sheet-head{display:flex;align-items:center;justify-content:space-between}
+    .wifi-status{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:500}
+    .wifi-status img{display:block;object-fit:contain}
+    .wifi-status .wifi-status-icon{width:19px;height:19px}
+    .wifi-status.connecting{color:#2b7fff}
+    .wifi-status.connecting img{animation:wifiSpin 1s linear infinite}
+    @keyframes wifiSpin{to{transform:rotate(360deg)}}
+    .wifi-status.connected{color:#00c076}
+    .wifi-later{padding:4px 2px;background:transparent;color:#9ca3af;font-size:15px;cursor:pointer}
+    .wifi-sheet-title{margin:20px 0 14px;color:#1a1a1a;font-size:22px;font-weight:700;letter-spacing:-.5px}
+    .wifi-question-list{display:flex;flex-direction:column;gap:12px}
+    .wifi-q{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;border:1px solid #e8e8e8;border-radius:14px;background:#fff;text-align:left;cursor:pointer;transition:transform .18s ease,opacity .28s ease}
+    .wifi-q:active{transform:scale(.985)}
+    .wifi-q img{flex:none;width:30px;height:30px;object-fit:contain}
+    .wifi-q span{flex:1;min-width:0;font-size:16px;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wifi-q .chev{flex:none;font-size:20px;color:#ccc;font-weight:300;margin-left:2px}
+    .wifi-connect.connected{padding:0;border:0;background:transparent}
+    .wifi-connect .wifi-connected-img{display:block;width:134px;height:auto;object-fit:contain}
   </style>
 </head>
 <body>
@@ -262,7 +285,7 @@
       <div class="scroll" id="homeScroll">
         <header class="topbar">
           <img class="avatar" src="assets/avatar.jpg" alt="太原公交智能体头像" />
-          <div class="agent-title"><strong>太原公交智能体</strong></div>
+          <div class="agent-title"><strong>小鹿由出行智能体</strong></div>
           <div class="top-actions">
             <button class="icon-btn" id="soundBtn" aria-label="播报开关"><img src="assets/header-sound-icon.png" alt="" /></button>
             <button class="icon-btn" id="moreBtn" aria-label="更多功能"><img src="assets/header-capsule.png" alt="" /></button>
@@ -270,10 +293,10 @@
         </header>
         <div class="content">
           <section class="wifi-card" aria-label="公交网络">
-            <div class="wifi-copy"><div class="wifi-route-line"><strong>太原市区公交</strong></div><span>TaiYuan Transit</span></div>
+            <div class="wifi-copy"><div class="wifi-route-line"><strong>太原21路公交</strong></div><span>XiaoLuYou</span></div>
             <button class="wifi-connect" id="wifiBtn"><img src="assets/wifi-icon.png" alt="" /><span>连接 WiFi</span></button>
           </section>
-          <section class="bus-card" aria-label="太原市区公交实时信息">
+          <section class="bus-card" aria-label="太原21路公交实时信息">
             <div class="route-top"><div><div class="route-dest">开往 · 迎泽大街</div><div class="route-next">下一站 <b>省委站（约3分钟）</b></div></div><button class="remind-btn set" id="remindBtn">已设提醒</button></div>
             <div class="route-track" aria-label="太原市区公交站点线路轴，可左右滑动查看更多站点"><div class="route-viewport"><div class="route-rail"><div class="route-line"></div><span class="bus-emoji" aria-hidden="true">🚌</span><div class="route-stop passed label-bottom" style="--x:30px"><span class="station-name">青年路</span></div><div class="route-stop current label-top" style="--x:150px"><span class="station-name">并州路</span></div><div class="route-stop label-bottom" style="--x:270px"><span class="station-name">迎泽大街</span></div><div class="route-stop label-top" style="--x:390px"><span class="station-name">省委站</span></div><div class="route-stop destination label-bottom" style="--x:510px"><span class="station-name">酒店站</span><span class="destination-tag">目的地</span></div><div class="route-stop label-top" style="--x:630px"><span class="station-name">新建南路</span></div><div class="route-stop label-bottom" style="--x:750px"><span class="station-name">府西街</span></div></div></div></div>
           </section>
@@ -341,6 +364,15 @@
 
     </section>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="wifi-mask" id="wifiMask"></div>
+    <section class="wifi-sheet" id="wifiSheet" role="dialog" aria-modal="true" aria-label="连网状态">
+      <div class="wifi-sheet-head">
+        <div class="wifi-status connecting" id="wifiStatus"><img class="wifi-status-icon" id="wifiStatusIcon" src="assets/wifi-loading.png" alt="" /><span id="wifiStatusText">连接中...</span></div>
+        <button class="wifi-later" id="wifiLater" aria-label="稍后关闭">稍后</button>
+      </div>
+      <h2 class="wifi-sheet-title">这趟车，你想了解什么？</h2>
+      <div class="wifi-question-list" id="wifiQuestionList"></div>
+    </section>
   </main>
   <script>
     (() => {
@@ -356,7 +388,38 @@
       function toggleFavorite() { favorite = !favorite; $$('[id$="Favorite"],#hotelFavorite,#bottomFavorite').forEach(btn => btn?.classList.toggle('active', favorite)); showToast(favorite ? '已收藏太原市迎泽大街省委兰欧国际酒店' : '已取消收藏'); }
       function setReminder(enabled) { $$('.remind-btn').forEach(btn => { btn.classList.toggle('set', enabled); btn.textContent = enabled ? '已设提醒' : '设置提醒'; }); }
       $$('.remind-btn').forEach(btn => btn.onclick = () => { const enabled = !btn.classList.contains('set'); setReminder(enabled); showToast(enabled ? '已设置酒店站到站提醒' : '已取消到站提醒'); });
-      $('#wifiBtn').onclick = e => { const btn = e.currentTarget, on = btn.classList.toggle('connected'); $('span', btn).textContent = on ? '已连接' : '连接 WiFi'; showToast(on ? '已连接 TaiYuan Transit WiFi' : 'WiFi 已断开'); };
+            /* 连网弹窗模块：底部抽屉 + 遮罩 + 4 条问题轮动 */
+      const wifiMask=$('#wifiMask'), wifiSheet=$('#wifiSheet'), wifiStatus=$('#wifiStatus'), wifiStatusIcon=$('#wifiStatusIcon'), wifiStatusText=$('#wifiStatusText'), wifiQuestionList=$('#wifiQuestionList'), wifiBtn=$('#wifiBtn');
+      let wifiState='idle', wifiTimer=null, wifiOffset=0, wifiRotateId=null, wifiFadeId=null;
+      const wifiPool=[{q:'公交WiFi安全吗？',t:'route',i:'assets/wifi-bus-icon.png'},
+        {q:'太原必逛景点有哪些？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
+        {q:'太原必吃美食有哪些？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'中国火箭首次成功发射成功',t:'news',i:'assets/wifi-news-icon.png'},
+        {q:'到火车站怎么换乘？',t:'route',i:'assets/wifi-bus-icon.png'},
+        {q:'兰欧国际酒店周边打卡点有哪些？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
+        {q:'酒店站附近有什么好吃的？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'太原公交能刷码乘车吗？',t:'news',i:'assets/wifi-news-icon.png'},
+        {q:'21路末班车是几点？',t:'route',i:'assets/wifi-bus-icon.png'},
+        {q:'太原秋天去哪玩？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
+        {q:'太原老字号面馆有哪些？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'太原今天有什么大新闻？',t:'news',i:'assets/wifi-news-icon.png'}];
+      function wifiSlots(){ return document.querySelectorAll('.wifi-q'); }
+      function syncWifiQuestions(){ wifiSlots().forEach((el,x)=>{ const it=wifiPool[(wifiOffset+x)%wifiPool.length]; $('img',el).src=it.i; $('span',el).textContent=it.q; el.dataset.q=it.q; el.dataset.t=it.t; }); }
+      function buildWifiQuestions(){ wifiQuestionList.innerHTML=''; for(let x=0;x<4;x++){ const b=document.createElement('button'); b.className='wifi-q'; b.type='button'; b.innerHTML='<img alt="" /><span></span><span class="chev">›</span>'; wifiQuestionList.appendChild(b); } syncWifiQuestions(); }
+      buildWifiQuestions();
+      function stopWifiRotate(){ if(wifiRotateId){clearInterval(wifiRotateId); wifiRotateId=null;} clearTimeout(wifiFadeId); }
+      function startWifiRotate(){ stopWifiRotate(); wifiRotateId=setInterval(()=>{ wifiSlots().forEach(el=>el.classList.add('rotating-out')); clearTimeout(wifiFadeId); wifiFadeId=setTimeout(()=>{ wifiOffset=(wifiOffset+1)%wifiPool.length; syncWifiQuestions(); setTimeout(()=>wifiSlots().forEach(el=>el.classList.remove('rotating-out')),40); },260); },3800); }
+      function updateWifiStatus(){
+        if(wifiState==='connected'){ wifiStatus.classList.remove('connecting'); wifiStatus.classList.add('connected'); wifiStatusIcon.src='assets/wifi-done-icon.png'; wifiStatusIcon.style.animation='none'; wifiStatusText.textContent='连接成功'; }
+        else { wifiStatus.classList.add('connecting'); wifiStatus.classList.remove('connected'); wifiStatusIcon.src='assets/wifi-loading.png'; wifiStatusText.textContent='连接中...'; }
+      }
+      function startWifiConnect(){ if(wifiTimer) return; wifiTimer=setTimeout(()=>{ wifiTimer=null; wifiState='connected'; updateWifiStatus(); wifiBtn.classList.add('connected'); wifiBtn.innerHTML='<img class="wifi-connected-img" src="assets/wifi-connected-btn.png" alt="连接成功" />'; },3000); }
+      function openWifiSheet(){ wifiSheet.classList.add('show'); wifiMask.classList.add('show'); if(wifiState==='idle'||wifiState==='connecting'){ wifiState='connecting'; updateWifiStatus(); startWifiConnect(); } else { updateWifiStatus(); } startWifiRotate(); }
+      function closeWifiSheet(){ wifiSheet.classList.remove('show'); wifiMask.classList.remove('show'); stopWifiRotate(); }
+      wifiBtn.onclick = () => { if(wifiState==='connected'){ showToast('已连接 XiaoLuYou 网络'); return; } openWifiSheet(); };
+      $('#wifiLater').onclick = closeWifiSheet;
+      wifiMask.onclick = closeWifiSheet;
+      wifiQuestionList.addEventListener('click', e => { const q=e.target.closest('.wifi-q'); if(!q) return; closeWifiSheet(); ask(q.dataset.q, q.dataset.t); });
       function toggleSound() { soundOn = !soundOn; $$('#soundBtn,#chatSound').forEach(btn => btn.classList.toggle('active', soundOn)); showToast(soundOn ? '语音播报已开启' : '语音播报已关闭'); if (!soundOn && 'speechSynthesis' in window) speechSynthesis.cancel(); }
       $('#soundBtn').onclick = toggleSound; $('#chatSound').onclick = toggleSound; $('#moreBtn').onclick = () => showToast('支持线路、实时公交、酒店推荐与到站提醒');
       $('#detailBack').onclick = () => showView(homeView, 'back'); $('#chatBack').onclick = () => showView(homeView, 'back'); $('#hotelAd').onclick = openDetail; $('#hotelAd').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') openDetail(); };
@@ -369,7 +432,7 @@
         {q:'我的目的站有什么好吃的',type:'food',icon:'assets/icon-food.png',alt:'餐饮',cls:'query-food'},
         {q:'附近有什么好的酒店推荐',type:'hotel',icon:'assets/icon-transit.png',alt:'住宿',cls:'query-hotel'},
         {q:'这趟车还有多久到酒店站',type:'arrival',icon:'assets/icon-transit.png',alt:'出行',cls:'query-route'},
-        {q:'太原市区公交末班车是几点',type:'schedule',icon:'assets/icon-transit.png',alt:'出行',cls:'query-route'},
+        {q:'太原21路公交末班车是几点',type:'schedule',icon:'assets/icon-transit.png',alt:'出行',cls:'query-route'},
         {q:'到站前提醒我下车',type:'reminder',icon:'assets/icon-transit.png',alt:'出行',cls:'query-route'}
       ];
       $$('.query').forEach(btn => btn.onclick = () => ask(btn.dataset.question, btn.dataset.type));
