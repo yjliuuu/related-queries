@@ -453,6 +453,41 @@
     .hotel-detail-nav .hero-btn.capsule{width:82px;height:32px}
     .hotel-detail-nav .hero-btn.capsule img{width:82px;height:auto}
     @media(max-width:360px){.hotel-ad .hotel-muststay{width:78px}.hotel-badge-row img{height:16px}.hotel-badge-row img+img{height:16px}}
+      /* 连网弹窗：底部抽屉 + 遮罩，状态行(连接中/连接成功) + 4条问题轮动。 */
+    .wifi-mask{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.45);opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s}
+    .wifi-mask.show{opacity:1;visibility:visible}
+    .wifi-sheet{position:absolute;left:0;right:0;bottom:0;z-index:31;padding:20px 20px calc(22px + env(safe-area-inset-bottom));background:#fff;border-radius:22px 22px 0 0;transform:translateY(105%);transition:transform .32s cubic-bezier(.22,.75,.25,1);box-shadow:0 -12px 40px rgba(0,0,0,.14)}
+    .wifi-sheet.show{transform:translateY(0)}
+    .wifi-sheet-head{display:flex;align-items:center;justify-content:space-between}
+    .wifi-status{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:500}
+    .wifi-status img{display:block;object-fit:contain}
+    .wifi-status .wifi-status-icon{width:19px;height:19px}
+    .wifi-status.connecting{color:#2b7fff}
+    .wifi-status.connecting img{animation:wifiSpin 1s linear infinite}
+    @keyframes wifiSpin{to{transform:rotate(360deg)}}
+    .wifi-status.connected{color:#00c076}
+    .wifi-later{padding:4px 2px;background:transparent;color:#9ca3af;font-size:15px;cursor:pointer}
+    .wifi-sheet-title{margin:20px 0 14px;color:#1a1a1a;font-size:22px;font-weight:700;letter-spacing:-.5px}
+    .wifi-question-list{display:flex;flex-direction:column;gap:12px}
+    .wifi-q{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;border:1px solid #e8e8e8;border-radius:14px;background:#fff;text-align:left;cursor:pointer;transition:transform .18s ease,opacity .28s ease}
+    .wifi-q:active{transform:scale(.985)}
+    .wifi-q img{flex:none;width:30px;height:30px;object-fit:contain}
+    .wifi-q span{flex:1;min-width:0;font-size:16px;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wifi-q .chev{flex:none;font-size:20px;color:#ccc;font-weight:300;margin-left:2px}
+    .wifi-ad{display:flex;align-items:stretch;width:100%;padding:0 14px 0 0;border:1px solid #cf9bff;border-radius:14px;overflow:hidden;background:#fff;text-align:left;cursor:pointer;transition:transform .18s ease}
+    .wifi-ad:active{transform:scale(.985)}
+    .wifi-ad>img{flex:none;width:64px;align-self:stretch;object-fit:cover;border-radius:0}
+    .wifi-ad-copy{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:10px 2px 10px 12px}
+    .wifi-ad-title{margin:0;font-size:16px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:linear-gradient(90deg,#7c3aed,#c026d3);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .wifi-ad-meta{display:flex;align-items:center;gap:5px;color:#9499a3;font-size:11.5px;white-space:nowrap;overflow:hidden}
+    .wifi-ad-shop{flex:none;color:#ff7a1a;font-size:12.5px;font-weight:800}
+    .wifi-ad-meta i{flex:none;font-style:normal;color:#e5e0f0}
+    .wifi-ad-meta em{flex:none;font-style:normal}
+    .wifi-ad-cta{flex:none;display:flex;align-items:center;gap:6px;margin-left:2px}
+    .wifi-ad-cta b{color:#ff3040;font-size:16px;font-weight:800;line-height:1}
+    .wifi-ad .chev{flex:none;font-size:17px;color:#c4c4cc;font-weight:300}
+    .wifi-connect.connected{padding:0;border:0;background:transparent}
+    .wifi-connect .wifi-connected-img{display:block;width:134px;height:auto;object-fit:contain}
   </style>
 </head>
 <body>
@@ -473,8 +508,8 @@
             <button class="wifi-connect" id="wifiBtn"><img src="assets/wifi-icon.png" alt="" /><span>连接 WiFi</span></button>
           </section>
           <section class="bus-card" aria-label="太原市区公交实时信息">
-            <div class="route-top"><div><div class="route-dest">开往 · 食品街</div><div class="route-next">下一站 <b>食品街站（约3分钟）</b></div></div><button class="remind-btn set" id="remindBtn">已设提醒</button></div>
-            <div class="route-track" aria-label="太原市区公交站点线路轴，可左右滑动查看更多站点"><div class="route-viewport"><div class="route-rail"><div class="route-line"></div><span class="bus-emoji" aria-hidden="true">🚌</span><div class="route-stop passed label-bottom" style="--x:30px"><span class="station-name">青年路</span></div><div class="route-stop current label-top" style="--x:150px"><span class="station-name">并州路</span></div><div class="route-stop label-bottom" style="--x:270px"><span class="station-name">食品街</span></div><div class="route-stop label-top" style="--x:390px"><span class="station-name">食品街站</span></div><div class="route-stop destination label-bottom" style="--x:510px"><span class="station-name">饭店站</span><span class="destination-tag">目的地</span></div><div class="route-stop label-top" style="--x:630px"><span class="station-name">新建南路</span></div><div class="route-stop label-bottom" style="--x:750px"><span class="station-name">府西街</span></div></div></div></div>
+            <div class="route-top"><div><div class="route-dest">开往 · 食品街</div><div class="route-next">下一站 <b>食品街站（约3分钟）</b></div></div><button class="remind-btn" id="remindBtn">设置提醒</button></div>
+            <div class="route-track" aria-label="太原市区公交站点线路轴，可左右滑动查看更多站点"><div class="route-viewport"><div class="route-rail"><div class="route-line"></div><span class="bus-emoji" aria-hidden="true">🚌</span><div class="route-stop passed label-bottom" style="--x:30px"><span class="station-name">青年路</span></div><div class="route-stop current label-top" style="--x:150px"><span class="station-name">并州路</span></div><div class="route-stop label-bottom" style="--x:270px"><span class="station-name">食品街</span></div><div class="route-stop label-top" style="--x:390px"><span class="station-name">食品街站</span></div><div class="route-stop label-bottom" style="--x:510px"><span class="station-name">饭店站</span></div><div class="route-stop label-top" style="--x:630px"><span class="station-name">新建南路</span></div><div class="route-stop label-bottom" style="--x:750px"><span class="station-name">府西街</span></div></div></div></div>
           </section>
           <section class="zilin-banner-ad" id="hotelAd" tabindex="0" role="button" aria-label="打开紫林薄盐生抽商品详情">
             <img src="assets/zilin-banner.png" alt="山西紫林薄盐生抽 500ml" loading="lazy" />
@@ -494,7 +529,7 @@
 
     <section class="view" id="chatView" aria-label="智能体回复页">
       <header class="chat-head"><button class="back-btn" id="chatBack" aria-label="返回首页"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><img class="avatar" src="assets/avatar.jpg" alt="" /><div class="chat-title"><strong>太原公交智能体</strong><span>结合实时公交为你回答</span></div><button class="icon-btn" id="chatSound" aria-label="播报"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15 9.5a4 4 0 0 1 0 5M18 7a7 7 0 0 1 0 10"/></svg></button></header>
-      <div class="scroll chat-scroll" id="chatScroll"><section class="bus-card" aria-label="实时公交信息"><div class="route-top"><div><div class="route-dest">开往 · 食品街</div><div class="route-next">下一站 <b>食品街站（约3分钟）</b></div></div><button class="remind-btn set mini-remind">已设提醒</button></div><div class="route-track"><div class="route-viewport"><div class="route-rail"><div class="route-line"></div><span class="bus-emoji">🚌</span><div class="route-stop current label-top" style="--x:150px"><span class="station-name">并州路</span></div><div class="route-stop label-bottom" style="--x:270px"><span class="station-name">食品街</span></div><div class="route-stop destination label-top" style="--x:390px"><span class="station-name">食品街站</span></div><div class="route-stop label-bottom" style="--x:510px"><span class="station-name">饭店站</span></div></div></div></div></section><div id="conversation"></div></div>
+      <div class="scroll chat-scroll" id="chatScroll"><section class="bus-card" aria-label="实时公交信息"><div class="route-top"><div><div class="route-dest">开往 · 食品街</div><div class="route-next">下一站 <b>食品街站（约3分钟）</b></div></div><button class="remind-btn mini-remind">设置提醒</button></div><div class="route-track"><div class="route-viewport"><div class="route-rail"><div class="route-line"></div><span class="bus-emoji">🚌</span><div class="route-stop current label-top" style="--x:150px"><span class="station-name">并州路</span></div><div class="route-stop label-bottom" style="--x:270px"><span class="station-name">食品街</span></div><div class="route-stop label-top" style="--x:390px"><span class="station-name">食品街站</span></div><div class="route-stop label-bottom" style="--x:510px"><span class="station-name">饭店站</span></div></div></div></div></section><div id="conversation"></div></div>
       <div class="composer-wrap"><form class="composer" id="chatComposer"><button class="voice-btn" type="button" data-voice aria-label="语音输入"><img src="assets/voice-icon.png" alt="" /></button><input id="chatInput" autocomplete="off" placeholder="继续问我，例如"太原有什么好物推荐"" aria-label="继续提问" /></form></div>
     </section>
 
@@ -579,12 +614,22 @@
       </div>
     </section>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="wifi-mask" id="wifiMask"></div>
+    <section class="wifi-sheet" id="wifiSheet" role="dialog" aria-modal="true" aria-label="连网状态">
+      <div class="wifi-sheet-head">
+        <div class="wifi-status connecting" id="wifiStatus"><img class="wifi-status-icon" id="wifiStatusIcon" src="assets/wifi-loading.png" alt="" /><span id="wifiStatusText">连接中...</span></div>
+        <button class="wifi-later" id="wifiLater" aria-label="稍后关闭">稍后</button>
+      </div>
+      <h2 class="wifi-sheet-title">这趟车，你想了解什么？</h2>
+      <div class="wifi-question-list" id="wifiQuestionList"></div>
+    </section>
   </main>
   <script>
     (() => {
       'use strict';
       const $ = (s, root = document) => root.querySelector(s);
       const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+      const queryAll = (s, root = document) => [...root.querySelectorAll(s)];
       const homeView = $('#homeView'), chatView = $('#chatView'), detailView = $('#detailView');
       const homeScroll = $('#homeScroll'), chatScroll = $('#chatScroll'), conversation = $('#conversation'), homeReply = $('#homeReply'), toast = $('#toast');
       let activeView = homeView, soundOn = false, answerTimer = null, toastTimer = null, favorite = false, rotateOffset = 0;
@@ -592,9 +637,45 @@
       function showView(next, direction = 'forward') { if (next === activeView) return; const prev = activeView; if (next === homeView) homeScroll.scrollTo({top:0,behavior:'auto'}); if (direction === 'back') next.style.transform = 'translateX(-18px)'; next.classList.add('active'); requestAnimationFrame(() => { next.style.transform = ''; prev.classList.add('leaving'); }); setTimeout(() => { prev.classList.remove('active','leaving'); activeView = next; }, 300); }
       function showToast(message) { clearTimeout(toastTimer); toast.textContent = message; toast.classList.add('show'); toastTimer = setTimeout(() => toast.classList.remove('show'), 1900); }
       function toggleFavorite() { favorite = !favorite; $$('#detailFavorite,#bottomFavorite,#titleFav').forEach(btn => btn?.classList.toggle('active', favorite)); showToast(favorite ? '已收藏' : '已取消'); }
-      function setReminder(enabled) { $$('.remind-btn').forEach(btn => { btn.classList.toggle('set', enabled); btn.textContent = enabled ? '已设提醒' : '设置提醒'; }); }
-      $$('.remind-btn').forEach(btn => btn.onclick = () => { const enabled = !btn.classList.contains('set'); setReminder(enabled); showToast(enabled ? '已设置食品街站到站提醒' : '已取消到站提醒'); });
-      $('#wifiBtn').onclick = e => { const btn = e.currentTarget, on = btn.classList.toggle('connected'); $('span', btn).textContent = on ? '已连接' : '连接 WiFi'; showToast(on ? '已连接 TaiYuan Transit WiFi' : 'WiFi 已断开'); };
+      function setDestination(node, enabled) { queryAll('.route-stop', node).forEach(st => { if (st.querySelector('.station-name')?.textContent.trim() !== '饭店站') return; st.classList.toggle('destination', enabled); let tag = st.querySelector('.destination-tag'); if (enabled) { if (!tag) { tag = document.createElement('span'); tag.className = 'destination-tag'; tag.textContent = '目的地'; st.appendChild(tag); } } else if (tag) { tag.remove(); } }); }
+      function setReminder(enabled) { queryAll('.remind-btn').forEach(btn => { btn.classList.toggle('set', enabled); btn.textContent = enabled ? '已设提醒' : '设置提醒'; }); [homeView, chatView].forEach(v => setDestination(v, enabled)); }
+      queryAll('.remind-btn').forEach(btn => btn.onclick = () => { const enabled = !btn.classList.contains('set'); setReminder(enabled); showToast(enabled ? '已设置饭店站到站提醒' : '已取消到站提醒'); });
+            /* 连网弹窗模块：底部抽屉 + 遮罩 + 4 条问题轮动 */
+      const wifiMask=$('#wifiMask'), wifiSheet=$('#wifiSheet'), wifiStatus=$('#wifiStatus'), wifiStatusIcon=$('#wifiStatusIcon'), wifiStatusText=$('#wifiStatusText'), wifiQuestionList=$('#wifiQuestionList'), wifiBtn=$('#wifiBtn');
+      let wifiState='idle', wifiTimer=null, wifiOffset=0, wifiRotateId=null, wifiFadeId=null;
+      const wifiPool=[{q:'公交WiFi安全吗？',t:'route',i:'assets/wifi-bus-icon.png'},
+        {q:'太原必逛景点有哪些？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
+        {q:'太原必吃美食有哪些？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'中国火箭首次成功发射成功',t:'news',i:'assets/wifi-news-icon.png'},
+        {q:'到火车站怎么换乘？',t:'route',i:'assets/wifi-bus-icon.png'},
+        {q:'紫林生抽哪里买最便宜？',t:'goods',i:'assets/wifi-food-icon.png'},
+        {q:'饭店站附近有什么好吃的？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'太原公交能刷码乘车吗？',t:'news',i:'assets/wifi-news-icon.png'},
+        {q:'21路末班车是几点？',t:'route',i:'assets/wifi-bus-icon.png'},
+        {q:'太原秋天去哪玩？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
+        {q:'山西老字号蘸料有哪些？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'太原今天有什么大新闻？',t:'news',i:'assets/wifi-news-icon.png'}];
+      function wifiSlots(){ return document.querySelectorAll('.wifi-q'); }
+      function syncWifiQuestions(){ wifiSlots().forEach((el,x)=>{ const it=wifiPool[(wifiOffset+x)%wifiPool.length]; $('img',el).src=it.i; $('span',el).textContent=it.q; el.dataset.q=it.q; el.dataset.t=it.t; }); }
+      function buildWifiQuestions(){ wifiQuestionList.innerHTML='';
+        const ad=document.createElement('button'); ad.type='button'; ad.className='wifi-ad'; ad.setAttribute('aria-label','山西紫林金标生抽 点击进入商品详情');
+        ad.innerHTML='<img src="assets/wifi-zilin-thumb.png" alt="山西紫林金标生抽" /><span class="wifi-ad-copy"><span class="wifi-ad-title">山西紫林金标生抽 500ml</span><span class="wifi-ad-meta"><span class="wifi-ad-shop">紫林味业</span><i>｜</i><em>超9千回头客 · 坏损包退</em></span></span><span class="wifi-ad-cta"><b>抢购</b><span class="chev">›</span></span>';
+        wifiQuestionList.appendChild(ad);
+        for(let x=0;x<3;x++){ const b=document.createElement('button'); b.className='wifi-q'; b.type='button'; b.innerHTML='<img alt="" /><span></span><span class="chev">›</span>'; wifiQuestionList.appendChild(b); } syncWifiQuestions(); }
+      buildWifiQuestions();
+      function stopWifiRotate(){ if(wifiRotateId){clearInterval(wifiRotateId); wifiRotateId=null;} clearTimeout(wifiFadeId); }
+      function startWifiRotate(){ stopWifiRotate(); wifiRotateId=setInterval(()=>{ wifiSlots().forEach(el=>el.classList.add('rotating-out')); clearTimeout(wifiFadeId); wifiFadeId=setTimeout(()=>{ wifiOffset=(wifiOffset+1)%wifiPool.length; syncWifiQuestions(); setTimeout(()=>wifiSlots().forEach(el=>el.classList.remove('rotating-out')),40); },260); },3800); }
+      function updateWifiStatus(){
+        if(wifiState==='connected'){ wifiStatus.classList.remove('connecting'); wifiStatus.classList.add('connected'); wifiStatusIcon.src='assets/wifi-done-icon.png'; wifiStatusIcon.style.animation='none'; wifiStatusText.textContent='连接成功'; }
+        else { wifiStatus.classList.add('connecting'); wifiStatus.classList.remove('connected'); wifiStatusIcon.src='assets/wifi-loading.png'; wifiStatusText.textContent='连接中...'; }
+      }
+      function startWifiConnect(){ if(wifiTimer) return; wifiTimer=setTimeout(()=>{ wifiTimer=null; wifiState='connected'; updateWifiStatus(); wifiBtn.classList.add('connected'); wifiBtn.innerHTML='<img class="wifi-connected-img" src="assets/wifi-connected-btn.png" alt="连接成功" />'; },3000); }
+      function openWifiSheet(){ wifiSheet.classList.add('show'); wifiMask.classList.add('show'); if(wifiState==='idle'||wifiState==='connecting'){ wifiState='connecting'; updateWifiStatus(); startWifiConnect(); } else { updateWifiStatus(); } startWifiRotate(); }
+      function closeWifiSheet(){ wifiSheet.classList.remove('show'); wifiMask.classList.remove('show'); stopWifiRotate(); }
+      wifiBtn.onclick = () => { if(wifiState==='connected'){ showToast('已连接 TaiYuan Transit 网络'); return; } openWifiSheet(); };
+      $('#wifiLater').onclick = closeWifiSheet;
+      wifiMask.onclick = closeWifiSheet;
+      wifiQuestionList.addEventListener('click', e => { const ad=e.target.closest('.wifi-ad'); if(ad){ closeWifiSheet(); openDetail(); return; } const q=e.target.closest('.wifi-q'); if(!q) return; closeWifiSheet(); ask(q.dataset.q, q.dataset.t); });
       function toggleSound() { soundOn = !soundOn; $$('#soundBtn,#chatSound').forEach(btn => btn.classList.toggle('active', soundOn)); showToast(soundOn ? '语音播报已开启' : '语音播报已关闭'); if (!soundOn && 'speechSynthesis' in window) speechSynthesis.cancel(); }
       $('#soundBtn').onclick = toggleSound; $('#chatSound').onclick = toggleSound; $('#moreBtn').onclick = () => showToast('支持线路、实时公交、好物推荐与到站提醒');
       $('#detailBack').onclick = () => showView(homeView, 'back'); $('#chatBack').onclick = () => showView(homeView, 'back'); $('#hotelAd').onclick = openDetail; $('#hotelAd').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') openDetail(); };

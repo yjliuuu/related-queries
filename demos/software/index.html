@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#f5f3ef" />
-  <title>株洲公交智能体 · 猜你想问商业化演示</title>
+  <title>上海公交智能体 · 猜你想问商业化演示</title>
   <style>
     :root {
       --bg: #f5f3ef;
@@ -173,13 +173,15 @@
     .compact .route-track { height:84px; margin-top:7px; transform:scaleY(.94); transform-origin:top; }
     .compact .route-rail { height:82px; }
 
-    .query-list { display:flex; flex-direction:column; align-items:flex-start; gap:10px; }
+    .query-list { display:flex; flex-direction:column; align-items:flex-start; gap:10px; margin-top:-6px; }
     .query {
       position:relative;
       display:inline-flex;
       align-items:center;
       gap:9px;
       width:fit-content;
+      margin-left:3px;
+      margin-right:3px;
       max-width:100%;
       min-height:52px;
       padding:10px 13px;
@@ -355,8 +357,8 @@
     .followups button { flex:none; padding:8px 11px; border-radius:15px; color:#555; background:#fff; border:1px solid #e9e9e9; cursor:pointer; font-size:11px; }
 
     /* Merchant detail */
-    #detailView { background:#f5f5f5; transform:translateX(100%); }
-    #detailView.active { transform:translateX(0); }
+    #landingView { background:#f5f5f5; transform:translateX(100%); }
+    #landingView.active { transform:translateX(0); }
     .detail-scroll { padding-bottom:84px; }
     .hero { position:relative; height:242px; color:#fff; background:#16496b; overflow:hidden; }
     .hero > img { width:100%; height:100%; object-fit:cover; }
@@ -474,6 +476,43 @@
     .project-list { gap:7px; }.project-card { grid-template-columns:76px 1fr auto; gap:8px; padding:7px; border-radius:9px; }.project-card img { width:76px; height:49px; border-radius:7px; }.project-card h3 { margin-bottom:3px; font-size:12px; }.project-card p { font-size:9px; }.project-card span { font-size:16px; }
     .play-feed { margin-top:8px; padding:11px 10px 2px; }.feed-grid { gap:7px; }.feed-card { border-radius:9px; }.feed-card img { height:88px; }.feed-card p { min-height:30px; margin:6px 7px; font-size:10px; }.feed-card span { margin:0 7px 7px; font-size:9px; }
 
+    /* Tomato novel download landing page */
+    #landingView { background:#fffaf1; transform:translateX(100%); }
+    #landingView.active { transform:translateX(0); }
+    .landing-scroll { height:100%; overflow-y:auto; padding-bottom:132px; scrollbar-width:none; background:linear-gradient(180deg,#ffd8c8 0,#fff8e9 31%,#fff 74%); }
+    .landing-scroll::-webkit-scrollbar { display:none; }
+    .landing-head { position:sticky; top:0; z-index:5; display:flex; align-items:center; justify-content:space-between; height:58px; padding:10px 14px; color:#40231c; background:rgba(255,245,231,.82); backdrop-filter:blur(14px); }
+    .landing-head > span { font-size:15px; font-weight:750; }
+    .landing-back, .landing-more { display:grid; place-items:center; flex:none; width:35px; height:35px; padding:0; border:0; border-radius:50%; color:#542b21; background:rgba(255,255,255,.7); cursor:pointer; appearance:none; -webkit-appearance:none; }
+    .landing-back svg { width:20px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+    .landing-more { position:relative; }
+    .more-dots { display:flex; align-items:center; justify-content:center; gap:3px; width:100%; height:100%; }
+    .more-dots i { display:block; width:4px; height:4px; border-radius:50%; background:currentColor; }
+    .landing-hero { padding:28px 18px 0; text-align:center; }
+    .tomato-app-icon { display:grid; place-items:center; width:72px; height:72px; margin:0 auto 12px; border-radius:21px; overflow:hidden; background:#fff; box-shadow:0 10px 20px rgba(239,66,31,.2); }
+    .tomato-app-icon img { display:block; width:100%; height:100%; object-fit:contain; }
+    .landing-brand { color:#2a1b17; font-size:20px; font-weight:750; }
+    .landing-hero h1 { margin:18px 0 8px; color:#17100d; font-size:29px; letter-spacing:-1.2px; line-height:1.18; }
+    .landing-hero p { margin:0; color:#4f3c34; font-size:14px; line-height:1.55; }
+    .landing-art { display:block; width:calc(100% + 22px); max-width:none; height:315px; margin:0 -11px; object-fit:contain; object-position:center bottom; }
+    .landing-benefits { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:0 14px; }
+    .landing-benefits article { display:flex; flex-direction:column; min-height:153px; padding:15px 10px; border-radius:18px; background:rgba(255,255,255,.9); box-shadow:0 7px 18px rgba(222,105,37,.10); text-align:left; }
+    .landing-benefits strong { color:#241712; font-size:15px; line-height:1.35; }
+    .landing-benefits span { margin-top:13px; color:#2d1c17; font-size:13px; line-height:1.4; }
+    .landing-benefits small { margin-top:12px; color:#78625a; font-size:10px; line-height:1.55; }
+    .landing-bottom-space { height:26px; }
+    .landing-cta-wrap { position:absolute; left:0; right:0; bottom:0; z-index:6; padding:12px 18px max(12px, env(safe-area-inset-bottom)); background:linear-gradient(180deg,rgba(255,250,241,0),rgba(255,250,241,.96) 23%,#fffaf1 55%); }
+    .landing-cta { display:block; width:100%; min-height:48px; padding:0 18px; border:0; border-radius:26px; color:#fff; background:linear-gradient(90deg,#ff4b2b,#ff261d); box-shadow:0 9px 19px rgba(245,57,30,.22); font-size:15px; font-weight:800; line-height:48px; text-align:center; cursor:pointer; }
+    .landing-cta:active { transform:scale(.985); }
+    .landing-cta-wrap p { margin:6px 0 0; color:#88776e; font-size:10px; text-align:center; }
+    /* 该素材本身已经包含完整广告卡片背景、圆角和阴影，外层只负责点击区域。 */
+    .tomato-ad { display:block; position:relative; min-height:0; width:100%; overflow:hidden; margin:0 0 -5px; padding:0; border:0; border-radius:0; background:transparent; box-shadow:none !important; }
+    .tomato-ad-image { display:block; width:102%; height:auto; margin-left:-1%; }
+    .tomato-ad .chev { display:none; }
+    .tomato-answer-card { overflow:hidden; border:1px solid #ffd7c9; border-radius:18px; background:#fff8f4; box-shadow:0 8px 24px rgba(255,90,60,.10); cursor:pointer; }
+    .tomato-answer-card img { display:block; width:100%; height:auto; }
+    .tomato-answer-hint { padding:9px; border-top:1px solid #ffe1d7; color:#ff5a48; font-size:11px; font-weight:700; text-align:center; }
+
     .toast { position:absolute; z-index:20; left:50%; bottom:28px; max-width:80%; padding:10px 14px; border-radius:19px; color:#fff; background:rgba(20,22,25,.88); box-shadow:0 8px 20px rgba(0,0,0,.15); font-size:12px; opacity:0; transform:translate(-50%,10px); pointer-events:none; transition:.25s; white-space:nowrap; }
     .toast.show { opacity:1; transform:translate(-50%,0); }
 
@@ -519,12 +558,12 @@
   </style>
 </head>
 <body>
-  <main class="app" aria-label="株洲公交智能体商业化演示">
+  <main class="app" aria-label="上海公交智能体商业化演示">
     <section class="view active" id="homeView" aria-label="智能体首页">
       <div class="ambient"></div>
       <div class="scroll" id="homeScroll">
         <header class="topbar">
-          <img class="avatar" src="assets/avatar.jpg" alt="株洲公交智能体头像" />
+          <img class="avatar" src="assets/avatar.jpg" alt="上海公交智能体头像" />
           <div class="agent-title"><strong>小鹿由出行智能体</strong></div>
           <div class="top-actions">
             <button class="icon-btn" id="soundBtn" aria-label="播报开关" title="播报开关"><img src="assets/header-sound-icon.png" alt="" /></button>
@@ -534,7 +573,7 @@
 
         <div class="content">
           <section class="wifi-card" aria-label="公交网络">
-            <div class="wifi-copy"><strong>株洲12路公交</strong><span>株洲公交免费 WiFi</span></div>
+            <div class="wifi-copy"><strong>上海12路公交</strong><span>XiaoLuYu</span></div>
             <button class="wifi-connect" id="wifiBtn">
               <img src="assets/wifi-icon.png" alt="" />
               <span>连接 WiFi</span>
@@ -567,15 +606,8 @@
             <h2 class="section-kicker">坐在车上，问点有用的</h2>
           </div>
           <div class="query-list" id="queryList">
-            <button class="query ad-query" data-question="株洲方特欢乐世界" data-type="ad" aria-label="打开株洲方特欢乐世界景区详情">
-              <span class="ad-image-wrap"><img src="assets/fangte-attraction.png" alt="株洲方特欢乐世界航拍图" /></span>
-              <span class="ad-copy">
-                <span class="query-text">株洲方特欢乐世界 <span class="ad-grade">4A</span></span>
-                <span class="ad-meta"><span class="ad-score">🔥 6.6</span><span class="ad-tag">主题乐园</span><span class="ad-tag">适合亲子</span><span class="ad-tag">情侣游玩</span></span>
-                <span class="ad-facts"><span class="ad-fact">◷ 营业时间：8:30–18:30</span></span>
-                <span class="ad-tickets"><span class="ad-ticket"><strong class="ad-price-now">¥69</strong><s class="ad-price-old">¥199</s><span class="ad-ticket-name">【单人】夜场门票</span><span class="ad-refund">随时退·过期退</span></span></span>
-              </span>
-              <span class="chev" aria-hidden="true">›</span>
+            <button class="query ad-query tomato-ad" data-question="番茄免费小说" data-type="ad" aria-label="打开番茄免费小说下载落地页">
+              <img class="tomato-ad-image" src="assets/tomato-ad-card-v3.png" alt="番茄免费小说广告：坐车无聊？通勤路上追一章" />
             </button>
             <button class="query query-landmark rotatable" data-question="沿途有什么值得看的地标" data-type="landmark">
               <img class="query-icon" src="assets/icon-scenic.png" alt="景区" /><span class="query-text">沿途有什么值得看的地标</span><span class="chev">›</span>
@@ -602,7 +634,7 @@
       <header class="chat-head">
         <button class="back-btn" id="chatBack" aria-label="返回首页"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
         <img class="avatar" src="assets/avatar.jpg" alt="" />
-        <div class="chat-title"><strong>株洲公交智能体</strong><span>结合实时公交为你回答</span></div>
+        <div class="chat-title"><strong>上海公交智能体</strong><span>结合实时公交为你回答</span></div>
         <button class="icon-btn" id="chatSound" aria-label="播报"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15 9.5a4 4 0 0 1 0 5M18 7a7 7 0 0 1 0 10"/></svg></button>
       </header>
       <div class="scroll chat-scroll" id="chatScroll">
@@ -637,49 +669,31 @@
       </div>
     </section>
 
-    <section class="view" id="detailView" aria-label="株洲方特欢乐世界景区详情">
-      <div class="scroll detail-scroll" id="detailScroll">
-        <nav class="detail-nav" aria-label="景区详情操作">
-          <div class="detail-nav-left"><button class="glass-btn" id="detailBack" aria-label="返回智能体"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><span class="detail-nav-title">景区详情</span></div>
-          <div class="detail-nav-group">
-            <button class="glass-btn" id="favoriteBtn" aria-label="收藏"><svg viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9z"/></svg></button>
-            <button class="glass-btn" data-toast="演示链接已复制" aria-label="分享"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="2"/><circle cx="6" cy="12" r="2"/><circle cx="18" cy="19" r="2"/><path d="m8 11 8-5M8 13l8 5"/></svg></button>
-          </div>
-        </nav>
-        <section class="detail-hero">
-          <img class="detail-hero-image" src="assets/scenic-detail-hero.png" alt="夜色中的株洲方特欢乐世界城堡" />
-          <span class="hero-page-dot" aria-hidden="true"></span>
+    <section class="view" id="landingView" aria-label="番茄免费小说下载落地页">
+      <div class="landing-scroll" id="landingScroll">
+        <header class="landing-head">
+          <button class="landing-back" id="landingBack" aria-label="返回公交首页"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button>
+          <span>番茄免费小说</span>
+          <button class="landing-more" data-toast="分享番茄免费小说" aria-label="更多操作"><span class="more-dots" aria-hidden="true"><i></i><i></i><i></i></span></button>
+        </header>
+        <section class="landing-hero">
+          <div class="tomato-app-icon"><img src="assets/tomato-icon.png" alt="番茄免费小说图标" /></div>
+          <div class="landing-brand">番茄免费小说</div>
+          <h1>海量正版小说 免费畅读</h1>
+          <p>热门榜单、言情、都市、悬疑、玄幻，好书每天更新</p>
+          <img class="landing-art" src="assets/tomato-landing-art.png" alt="番茄免费小说阅读场景" />
         </section>
-
-        <section class="scenic-summary-card">
-          <div class="summary-heading"><h1>株洲方特欢乐世界</h1><span class="scenic-grade">4A</span></div>
-          <div class="scenic-tags"><span>东方梦幻乐园</span><span>主题项目</span><span>游乐项目</span><span>休闲景观</span></div>
-          <div class="detail-info-row"><span class="info-icon" aria-hidden="true">◷</span><span class="detail-info-copy"><b>全年 10:00–17:30 开放</b>；全年 17:00 停止入园</span><button class="detail-action" data-toast="正在规划游玩时间" aria-label="查看营业说明">ⓘ</button><button class="detail-action" data-toast="正在规划路线" aria-label="导航"><svg viewBox="0 0 24 24"><path d="m4 10 15-6-6 16-3-7z"/><path d="m10 14 9-10"/></svg>导航</button></div>
-          <div class="detail-info-row"><span class="info-icon address-icon" aria-hidden="true">●</span><span class="detail-info-copy">湖南省株洲市石峰区华强路8号</span><button class="detail-action" data-toast="400-166-0006" aria-label="电话"><svg viewBox="0 0 24 24"><path d="M6 3h4l2 5-3 2c1.6 3.3 2.7 4.4 6 6l2-3 5 2v4c0 1.1-.9 2-2 2C10.6 21 3 13.4 3 4c0-1.1.9-2 2-1z"/></svg>电话</button></div>
-          <div class="comfort-row"><span class="comfort-label">♥ 安心玩</span><span>行李寄存 · WIFI覆盖 · 吸烟区 · 充电服务</span></div>
+        <section class="landing-benefits" aria-label="番茄小说产品特点">
+          <article><strong>免费阅读：</strong><span>热门小说不花钱</span><small>言情、都市、悬疑、玄幻全覆盖</small></article>
+          <article><strong>精选推荐：</strong><span>每日更新好内容</span><small>坐车、睡觉、散步都能读</small></article>
+          <article><strong>离线缓存：</strong><span>随时随地看小说</span><small>通勤路上也能继续阅读</small></article>
         </section>
-
-        <section class="section-card">
-          <div class="section-title-row"><h2>门票预订</h2><span>官方票务保障</span></div>
-          <div class="date-tabs" id="dateTabs"><button class="active">今日</button><button>明日</button><button>周末</button><button>指定日期</button></div>
-          <div class="ticket-list">
-            <article class="ticket-row"><div><h3>成人票</h3><p>官方 · 随时可退 · 入园凭身份证</p></div><div><div class="ticket-price"><small>¥</small><b>68</b><small>起</small></div><button class="ticket-buy" data-toast="已选择成人票 · ¥68起">预订⌄</button></div></article>
-            <article class="ticket-row"><div><h3>团队票–2大人</h3><p>随时可退 · 节假日可用</p></div><div><div class="ticket-price"><small>¥</small><b>260</b><small>起</small></div><button class="ticket-buy" data-toast="已选择团队票 · ¥260起">预订⌄</button></div></article>
-            <article class="ticket-row"><div><h3>老人票</h3><p>官方 · 随时可退</p></div><div><div class="ticket-price"><small>¥</small><b>199</b><small>起</small></div><button class="ticket-buy" data-toast="已选择老人票 · ¥199起">预订⌄</button></div></article>
-          </div>
-        </section>
-
-        <section class="section-card"><div class="section-title-row"><h2>园内项目</h2><span>查看全部 ›</span></div><div class="project-list">
-          <article class="project-card" data-toast="飞越极限项目介绍"><img src="assets/fangte-aerial-clean.jpg" alt="飞越极限项目"><div><h3>飞越极限</h3><p>沉浸式球幕体验 · 适合全家</p></div><span>›</span></article>
-          <article class="project-card" data-toast="火山探险项目介绍"><img src="assets/fangte-volcano.jpg" alt="火山探险项目"><div><h3>火山探险</h3><p>刺激过山车 · 建议提前排队</p></div><span>›</span></article>
-        </div></section>
-
-        <section class="play-feed"><div class="section-title-row"><h2>TA们怎么玩</h2><span>更多 ›</span></div><div class="feed-grid">
-          <article class="feed-card"><img src="assets/fangte-gate.jpg" alt="游客分享的方特乐园入口"><p>七夕去株洲方特太值了，梦幻项目一次玩个够</p><span>株洲市 · 17赞</span></article>
-          <article class="feed-card"><img src="assets/fangte-hero.jpg" alt="株洲方特欢乐世界园区景观"><p>找一个很哇塞的周末，一起打卡株洲方特</p><span>株洲市 · 1赞</span></article>
-        </div></section>
+        <div class="landing-bottom-space"></div>
       </div>
-
+      <div class="landing-cta-wrap">
+        <button class="landing-cta" id="landingCta">下载番茄免费小说，开始阅读</button>
+        <p>点击下载后进入应用下载页</p>
+      </div>
     </section>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -701,7 +715,7 @@
       const $$ = (s, root = document) => [...root.querySelectorAll(s)];
       const homeView = $('#homeView');
       const chatView = $('#chatView');
-      const detailView = $('#detailView');
+      const landingView = $('#landingView');
       const chatScroll = $('#chatScroll');
       const conversation = $('#conversation');
       const homeScroll = $('#homeScroll');
@@ -749,7 +763,7 @@
       function bindQuery(button) {
         button.onclick = () => {
           if (button.dataset.type === 'ad') {
-            openDetail();
+            openLanding();
             return;
           }
           ask(button.dataset.question, button.dataset.type);
@@ -779,35 +793,26 @@
       setInterval(rotateQueries, 3800);
 
       const answers = {
-        landmark: { title:'沿途地标推荐', body:'12路沿途可看到神农城炎帝文化主题公园、株洲博物馆和湘江风光带。若在招呼站下车，步行约12分钟可到株洲方特欢乐世界。', chip:'🚌 建议招呼站下车' },
-        route: { title:'去株洲火车站这样换乘', body:'在东浦站下车后步行约180米，到“东浦路口”站换乘T2路，预计28分钟到株洲火车站。当前道路畅通，建议预留8分钟换乘时间。', chip:'全程约38分钟 · ¥2' },
-        food: { title:'目的站附近美食', body:'招呼站附近1公里内有攸县香干、醴陵炒粉和株洲什锦菜。方特东门美食街步行约9分钟，午间11:30–13:00较拥挤。', chip:'查看3家附近餐厅 ›' },
+        landmark: { title:'沿途地标推荐', body:'12路沿途可看到上海徐家汇、上海博物馆和浦江风光带。若在招呼站下车，步行约12分钟可到上海欢乐谷。', chip:'🚌 建议招呼站下车' },
+        route: { title:'去上海火车站这样换乘', body:'在东浦站下车后步行约180米，到“东浦路口”站换乘T2路，预计28分钟到上海火车站。当前道路畅通，建议预留8分钟换乘时间。', chip:'全程约38分钟 · ¥2' },
+        food: { title:'目的站附近美食', body:'招呼站附近1公里内有本帮酱鸭、葱油拌面和生煎包。人民广场美食街步行约9分钟，午间11:30–13:00较拥挤。', chip:'查看3家附近餐厅 ›' },
         arrival: { title:'预计3分钟到站', body:'车辆已驶过中兴路，距离东浦站约620米。按当前车速，约3分钟抵达；到招呼站预计还需9分钟。', chip:'已开启实时刷新' },
         schedule: { title:'12路运营时间', body:'开往石板路方向首班06:20、末班21:30；工作日高峰约8–12分钟一班，平峰约15分钟一班。', chip:'末班车还有2小时15分' },
         reminder: { title:'到站提醒已设置', body:'将在抵达招呼站前1站，通过声音和震动提醒你。当前预计还有9分钟，请留意随身物品。', chip:'✓ 招呼站 · 提前1站提醒' },
         crowd: { title:'当前舒适不拥挤', body:'车内预计还有约12个座位，拥挤度为“舒适”。下一站预计有6人上车、3人下车。', chip:'舒适度 78%' },
-        fare: { title:'本次乘车票价 ¥2', body:'株洲12路实行一票制，支持交通卡、乘车码和现金。学生卡及符合条件的优待卡按本地规则减免。', chip:'支持扫码乘车' },
-        default: { title:'我来帮你看看', body:'这是商业演示中的模拟回答。你可以问我实时到站、公交换乘、沿途景点、美食推荐或直接输入“株洲方特欢乐世界”。', chip:'试试：还有多久到站' }
+        fare: { title:'本次乘车票价 ¥2', body:'上海12路实行一票制，支持交通卡、乘车码和现金。学生卡及符合条件的优待卡按本地规则减免。', chip:'支持扫码乘车' },
+        default: { title:'我来帮你看看', body:'这是商业演示中的模拟回答。你可以问我实时到站、公交换乘、沿途景点、美食推荐或直接输入“番茄免费小说”。', chip:'试试：还有多久到站' }
       };
 
-      function attractionCard() {
-        return `
-          <article class="answer-card" id="attractionCard" tabindex="0" role="button" aria-label="查看株洲方特欢乐世界商户详情">
-            <div class="attraction-top">
-              <div class="rank-img"><img src="assets/fangte-attraction.png" alt="株洲方特欢乐世界航拍图"></div>
-              <div class="ad-copy">
-                <div class="query-text">株洲方特欢乐世界 <span class="ad-grade">4A</span></div>
-                <div class="ad-meta"><span class="ad-score">🔥 6.6</span><span class="ad-tag">主题乐园</span><span class="ad-tag">适合亲子</span><span class="ad-tag">情侣游玩</span></div>
-                <div class="ad-facts"><span class="ad-fact">◷ 营业时间：8:30–18:30</span></div>
-                <div class="ad-tickets"><div class="ad-ticket"><strong class="ad-price-now">¥69</strong><s class="ad-price-old">¥199</s><span class="ad-ticket-name">【单人】夜场门票</span><span class="ad-refund">随时退·过期退</span></div></div>
-              </div><span class="arrow-circle" aria-hidden="true">›</span>
-            </div>
-            <div class="answer-intro">
-              <h3>景点介绍</h3>
-              <p>株洲方特欢乐世界，科幻动漫风，刺激又梦幻。飞越极限、火山探险，高科技项目让你心跳加速，还有温馨亲子区，共享童趣时光。来这，全家都能找到乐子！</p>
-              <div class="gallery"><img src="assets/fangte-gate.jpg" alt="园区游乐项目"><img src="assets/fangte-volcano.jpg" alt="火山主题过山车"></div>
-            </div>
-          </article>`;
+      function tomatoAnswer() {
+        return `<article class="tomato-answer-card" id="tomatoAnswerCard" tabindex="0" role="button" aria-label="打开番茄免费小说下载落地页"><img src="assets/tomato-ad-card-v3.png" alt="番茄免费小说广告卡片" /><div class="tomato-answer-hint">点击打开番茄免费小说下载落地页 ›</div></article>`;
+      }
+
+      function bindTomatoCard(root) {
+        const card = $('#tomatoAnswerCard', root);
+        if (!card) return;
+        card.onclick = openLanding;
+        card.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') openLanding(); };
       }
 
       function textAnswer(type) {
@@ -816,17 +821,11 @@
           <div class="followups"><button data-follow="arrival">还有多久到站</button><button data-follow="reminder">设置下车提醒</button><button data-follow="ad">附近有什么好玩的</button></div>`;
       }
 
-      function bindAttractionCard(root) {
-        const attraction = $('#attractionCard', root);
-        if (!attraction) return;
-        attraction.onclick = openDetail;
-        attraction.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') openDetail(); };
-      }
 
       function bindHomeFollowups(root) {
         $$('[data-follow]', root).forEach(btn => btn.onclick = () => {
           const t = btn.dataset.follow;
-          if (t === 'ad') ask('株洲方特欢乐世界', 'ad');
+          if (t === 'ad') ask('番茄免费小说', 'ad');
           else {
             const poolItem = queryPool.find(x => x.type === t);
             ask(poolItem ? poolItem.q : btn.textContent, t);
@@ -840,14 +839,14 @@
           <div class="home-scroll-card"><div class="typing" aria-label="正在回复"><i></i><i></i><i></i></div></div>`;
         requestAnimationFrame(() => homeScroll.scrollTo({ top: homeScroll.scrollHeight, behavior:'smooth' }));
         answerTimer = setTimeout(() => {
-          const answer = type === 'ad' ? attractionCard() : textAnswer(type);
+          const answer = type === 'ad' ? tomatoAnswer() : textAnswer(type);
           homeReply.innerHTML = `<div class="user-msg"><div class="user-bubble">${escapeHTML(question)}</div></div><div class="home-scroll-card">${answer}</div>`;
-          bindAttractionCard(homeReply);
+          bindTomatoCard(homeReply);
           bindHomeFollowups(homeReply);
           requestAnimationFrame(() => homeScroll.scrollTo({ top: homeScroll.scrollHeight, behavior:'smooth' }));
           if (soundOn && 'speechSynthesis' in window) {
             speechSynthesis.cancel();
-            const spoken = type === 'ad' ? '为你推荐株洲方特欢乐世界，点击景区卡片可以查看详情与购票。' : (answers[type] || answers.default).body;
+            const spoken = type === 'ad' ? '为你推荐番茄免费小说，点击广告卡片可以打开下载落地页。' : (answers[type] || answers.default).body;
             speechSynthesis.speak(new SpeechSynthesisUtterance(spoken));
           }
         }, type === 'ad' ? 520 : 420);
@@ -860,9 +859,9 @@
         showHomeReply(question, type);
       }
 
-      function openDetail() {
-        $('#detailScroll').scrollTop = 0;
-        showView(detailView);
+      function openLanding() {
+        $('#landingScroll').scrollTop = 0;
+        showView(landingView);
       }
 
       function setReminder(enabled) {
@@ -891,17 +890,17 @@
       const wifiMask=$('#wifiMask'), wifiSheet=$('#wifiSheet'), wifiStatus=$('#wifiStatus'), wifiStatusIcon=$('#wifiStatusIcon'), wifiStatusText=$('#wifiStatusText'), wifiQuestionList=$('#wifiQuestionList'), wifiBtn=$('#wifiBtn');
       let wifiState='idle', wifiTimer=null, wifiOffset=0, wifiRotateId=null, wifiFadeId=null;
       const wifiPool=[{q:'公交WiFi安全吗？',t:'route',i:'assets/wifi-bus-icon.png'},
-        {q:'株洲必逛景点有哪些？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
-        {q:'株洲必吃美食有哪些？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'上海必逛景点有哪些？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
+        {q:'上海必吃美食有哪些？',t:'food',i:'assets/wifi-food-icon.png'},
         {q:'到火车站怎么换乘？',t:'route',i:'assets/wifi-bus-icon.png'},
-        {q:'方特欢乐世界怎么去？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
+        {q:'这趟车还有多久到东浦站？',t:'route',i:'assets/wifi-bus-icon.png'},
         {q:'目的站附近有什么好吃的？',t:'food',i:'assets/wifi-food-icon.png'},
-        {q:'株洲公交能刷码乘车吗？',t:'route',i:'assets/wifi-bus-icon.png'},
+        {q:'上海公交能刷码乘车吗？',t:'route',i:'assets/wifi-bus-icon.png'},
         {q:'12路末班车是几点？',t:'route',i:'assets/wifi-bus-icon.png'},
-        {q:'株洲秋天去哪玩？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
-        {q:'株洲老字号小吃有哪些？',t:'food',i:'assets/wifi-food-icon.png'},
-        {q:'方特园区必玩项目有哪些？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
-        {q:'株洲今天有什么好玩的？',t:'landmark',i:'assets/wifi-scenic-icon.png'}];
+        {q:'上海秋天去哪玩？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
+        {q:'上海老字号小吃有哪些？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'上海城市地标有哪些？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
+        {q:'上海今天有什么好玩的？',t:'landmark',i:'assets/wifi-scenic-icon.png'}];
       function wifiSlots(){ return document.querySelectorAll('.wifi-q'); }
       function syncWifiQuestions(){ wifiSlots().forEach((el,x)=>{ const it=wifiPool[(wifiOffset+x)%wifiPool.length]; $('img',el).src=it.i; $('span',el).textContent=it.q; el.dataset.q=it.q; el.dataset.t=it.t; }); }
       function buildWifiQuestions(){ wifiQuestionList.innerHTML=''; for(let x=0;x<4;x++){ const b=document.createElement('button'); b.className='wifi-q'; b.type='button'; b.innerHTML='<img alt="" /><span></span><span class="chev">›</span>'; wifiQuestionList.appendChild(b); } syncWifiQuestions(); }
@@ -915,7 +914,7 @@
       function startWifiConnect(){ if(wifiTimer) return; wifiTimer=setTimeout(()=>{ wifiTimer=null; wifiState='connected'; updateWifiStatus(); wifiBtn.classList.add('connected'); wifiBtn.innerHTML='<img class="wifi-connected-img" src="assets/wifi-connected-btn.png" alt="连接成功" />'; },3000); }
       function openWifiSheet(){ wifiSheet.classList.add('show'); wifiMask.classList.add('show'); if(wifiState==='idle'||wifiState==='connecting'){ wifiState='connecting'; updateWifiStatus(); startWifiConnect(); } else { updateWifiStatus(); } startWifiRotate(); }
       function closeWifiSheet(){ wifiSheet.classList.remove('show'); wifiMask.classList.remove('show'); stopWifiRotate(); }
-      wifiBtn.onclick = () => { if(wifiState==='connected'){ showToast('已连接 ZHUZHOU-BUS 网络'); return; } openWifiSheet(); };
+      wifiBtn.onclick = () => { if(wifiState==='connected'){ showToast('已连接 XiaoLuYu 网络'); return; } openWifiSheet(); };
       $('#wifiLater').onclick = closeWifiSheet;
       wifiMask.onclick = closeWifiSheet;
       wifiQuestionList.addEventListener('click', e => { const q=e.target.closest('.wifi-q'); if(!q) return; closeWifiSheet(); ask(q.dataset.q, q.dataset.t); });
@@ -930,7 +929,8 @@
       $('#chatSound').onclick = e => toggleSound(e.currentTarget);
       $('#moreBtn').onclick = () => showToast('支持路线、景点、美食与到站提醒');
       $('#chatBack').onclick = () => showView(homeView, 'back');
-      $('#detailBack').onclick = () => showView(homeView, 'back');
+      $('#landingBack').onclick = () => showView(homeView, 'back');
+      $('#landingCta').onclick = () => showToast('已进入番茄免费小说应用下载页（演示）');
 
       function bindComposer(form, input) {
         form.addEventListener('submit', e => {
@@ -940,7 +940,7 @@
           input.value = '';
           const low = value.toLowerCase();
           let type = 'default';
-          if (value.includes('方特') || value.includes('景点') || value.includes('好玩')) type = 'ad';
+          if (value.includes('番茄') || value.includes('小说') || value.includes('景点') || value.includes('好玩')) type = 'ad';
           else if (value.includes('多久') || value.includes('到站')) type = 'arrival';
           else if (value.includes('提醒')) type = 'reminder';
           else if (value.includes('末班') || value.includes('几点')) type = 'schedule';
@@ -961,9 +961,9 @@
         input.placeholder = '正在聆听…';
         setTimeout(() => {
           btn.classList.remove('listening');
-          input.value = '株洲方特欢乐世界';
+          input.value = '番茄免费小说';
           input.placeholder = form.id === 'homeComposer' ? '问路线、到站提醒或附近推荐' : '继续问我，例如“怎么买票”';
-          showToast('已识别：株洲方特欢乐世界');
+          showToast('已识别：番茄免费小说');
         }, 1050);
       });
 
@@ -979,14 +979,14 @@
         favorite = !favorite;
         const button = $('#favoriteBtn');
         if (button) button.style.color = favorite ? '#ffdf36' : '';
-        showToast(favorite ? '已收藏株洲方特欢乐世界' : '已取消收藏');
+        showToast(favorite ? '已收藏番茄免费小说' : '已取消收藏');
       }
       const favoriteBtn = $('#favoriteBtn');
       if (favoriteBtn) favoriteBtn.onclick = toggleFavorite;
 
       window.addEventListener('keydown', e => {
         if (e.key !== 'Escape') return;
-        if (activeView === detailView) showView(chatView, 'back');
+        if (activeView === landingView) showView(homeView, 'back');
         else if (activeView === chatView) showView(homeView, 'back');
       });
     })();
