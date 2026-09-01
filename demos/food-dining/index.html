@@ -723,6 +723,29 @@
     @media (prefers-reduced-motion: reduce) {
       *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; }
     }
+      /* 连网弹窗：底部抽屉 + 遮罩，状态行(连接中/连接成功) + 4条问题轮动。 */
+    .wifi-mask{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.45);opacity:0;visibility:hidden;transition:opacity .25s ease,visibility .25s}
+    .wifi-mask.show{opacity:1;visibility:visible}
+    .wifi-sheet{position:absolute;left:0;right:0;bottom:0;z-index:31;padding:20px 20px calc(22px + env(safe-area-inset-bottom));background:#fff;border-radius:22px 22px 0 0;transform:translateY(105%);transition:transform .32s cubic-bezier(.22,.75,.25,1);box-shadow:0 -12px 40px rgba(0,0,0,.14)}
+    .wifi-sheet.show{transform:translateY(0)}
+    .wifi-sheet-head{display:flex;align-items:center;justify-content:space-between}
+    .wifi-status{display:flex;align-items:center;gap:7px;font-size:15px;font-weight:500}
+    .wifi-status img{display:block;object-fit:contain}
+    .wifi-status .wifi-status-icon{width:19px;height:19px}
+    .wifi-status.connecting{color:#2b7fff}
+    .wifi-status.connecting img{animation:wifiSpin 1s linear infinite}
+    @keyframes wifiSpin{to{transform:rotate(360deg)}}
+    .wifi-status.connected{color:#00c076}
+    .wifi-later{padding:4px 2px;background:transparent;color:#9ca3af;font-size:15px;cursor:pointer}
+    .wifi-sheet-title{margin:20px 0 14px;color:#1a1a1a;font-size:22px;font-weight:700;letter-spacing:-.5px}
+    .wifi-question-list{display:flex;flex-direction:column;gap:12px}
+    .wifi-q{display:flex;align-items:center;gap:12px;width:100%;padding:11px 14px;border:1px solid #e8e8e8;border-radius:14px;background:#fff;text-align:left;cursor:pointer;transition:transform .18s ease,opacity .28s ease}
+    .wifi-q:active{transform:scale(.985)}
+    .wifi-q img{flex:none;width:30px;height:30px;object-fit:contain}
+    .wifi-q span{flex:1;min-width:0;font-size:16px;font-weight:600;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wifi-q .chev{flex:none;font-size:20px;color:#ccc;font-weight:300;margin-left:2px}
+    .wifi-connect.connected{padding:0;border:0;background:transparent}
+    .wifi-connect .wifi-connected-img{display:block;width:134px;height:auto;object-fit:contain}
   </style>
 </head>
 <body>
@@ -732,7 +755,7 @@
       <div class="scroll" id="homeScroll">
         <header class="topbar">
           <img class="avatar" src="assets/avatar.jpg" alt="株洲公交智能体头像" />
-          <div class="agent-title"><strong>株洲公交智能体</strong></div>
+          <div class="agent-title"><strong>小鹿由出行智能体</strong></div>
           <div class="top-actions">
             <button class="icon-btn" id="soundBtn" aria-label="播报开关" title="播报开关"><img src="assets/header-sound-icon.png" alt="" /></button>
             <button class="icon-btn" id="moreBtn" aria-label="更多功能" title="更多功能"><img src="assets/header-capsule.png" alt="" /></button>
@@ -1022,6 +1045,15 @@
     </section>
 
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <div class="wifi-mask" id="wifiMask"></div>
+    <section class="wifi-sheet" id="wifiSheet" role="dialog" aria-modal="true" aria-label="连网状态">
+      <div class="wifi-sheet-head">
+        <div class="wifi-status connecting" id="wifiStatus"><img class="wifi-status-icon" id="wifiStatusIcon" src="assets/wifi-loading.png" alt="" /><span id="wifiStatusText">连接中...</span></div>
+        <button class="wifi-later" id="wifiLater" aria-label="稍后关闭">稍后</button>
+      </div>
+      <h2 class="wifi-sheet-title">这趟车，你想了解什么？</h2>
+      <div class="wifi-question-list" id="wifiQuestionList"></div>
+    </section>
   </main>
 
   <script>
@@ -1231,12 +1263,38 @@
         setReminder(!!$('#remindBtn')?.classList.contains('set'), false);
       });
 
-      $('#wifiBtn').onclick = e => {
-        const btn = e.currentTarget;
-        const on = btn.classList.toggle('connected');
-        $('span', btn).textContent = on ? 'WiFi 已连接' : '连接 WiFi';
-        showToast(on ? '已连接 ZHUZHOU-BUS WiFi' : 'WiFi 已断开');
-      };
+            /* 连网弹窗模块：底部抽屉 + 遮罩 + 4 条问题轮动 */
+      const wifiMask=$('#wifiMask'), wifiSheet=$('#wifiSheet'), wifiStatus=$('#wifiStatus'), wifiStatusIcon=$('#wifiStatusIcon'), wifiStatusText=$('#wifiStatusText'), wifiQuestionList=$('#wifiQuestionList'), wifiBtn=$('#wifiBtn');
+      let wifiState='idle', wifiTimer=null, wifiOffset=0, wifiRotateId=null, wifiFadeId=null;
+      const wifiPool=[{q:'公交WiFi安全吗？',t:'route',i:'assets/wifi-bus-icon.png'},
+        {q:'株洲必吃美食有哪些？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'株洲必逛景点有哪些？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
+        {q:'到火车站怎么换乘？',t:'route',i:'assets/wifi-bus-icon.png'},
+        {q:'我的目的站有什么好吃的？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'株洲麻辣烫哪家好吃？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'株洲公交能刷码乘车吗？',t:'route',i:'assets/wifi-bus-icon.png'},
+        {q:'12路末班车是几点？',t:'route',i:'assets/wifi-bus-icon.png'},
+        {q:'株洲秋天去哪玩？',t:'landmark',i:'assets/wifi-scenic-icon.png'},
+        {q:'株洲老字号小吃有哪些？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'株洲夜市有什么好去处？',t:'food',i:'assets/wifi-food-icon.png'},
+        {q:'株洲今天有什么好玩的？',t:'landmark',i:'assets/wifi-scenic-icon.png'}];
+      function wifiSlots(){ return document.querySelectorAll('.wifi-q'); }
+      function syncWifiQuestions(){ wifiSlots().forEach((el,x)=>{ const it=wifiPool[(wifiOffset+x)%wifiPool.length]; $('img',el).src=it.i; $('span',el).textContent=it.q; el.dataset.q=it.q; el.dataset.t=it.t; }); }
+      function buildWifiQuestions(){ wifiQuestionList.innerHTML=''; for(let x=0;x<4;x++){ const b=document.createElement('button'); b.className='wifi-q'; b.type='button'; b.innerHTML='<img alt="" /><span></span><span class="chev">›</span>'; wifiQuestionList.appendChild(b); } syncWifiQuestions(); }
+      buildWifiQuestions();
+      function stopWifiRotate(){ if(wifiRotateId){clearInterval(wifiRotateId); wifiRotateId=null;} clearTimeout(wifiFadeId); }
+      function startWifiRotate(){ stopWifiRotate(); wifiRotateId=setInterval(()=>{ wifiSlots().forEach(el=>el.classList.add('rotating-out')); clearTimeout(wifiFadeId); wifiFadeId=setTimeout(()=>{ wifiOffset=(wifiOffset+1)%wifiPool.length; syncWifiQuestions(); setTimeout(()=>wifiSlots().forEach(el=>el.classList.remove('rotating-out')),40); },260); },3800); }
+      function updateWifiStatus(){
+        if(wifiState==='connected'){ wifiStatus.classList.remove('connecting'); wifiStatus.classList.add('connected'); wifiStatusIcon.src='assets/wifi-done-icon.png'; wifiStatusIcon.style.animation='none'; wifiStatusText.textContent='连接成功'; }
+        else { wifiStatus.classList.add('connecting'); wifiStatus.classList.remove('connected'); wifiStatusIcon.src='assets/wifi-loading.png'; wifiStatusText.textContent='连接中...'; }
+      }
+      function startWifiConnect(){ if(wifiTimer) return; wifiTimer=setTimeout(()=>{ wifiTimer=null; wifiState='connected'; updateWifiStatus(); wifiBtn.classList.add('connected'); wifiBtn.innerHTML='<img class="wifi-connected-img" src="assets/wifi-connected-btn.png" alt="连接成功" />'; },3000); }
+      function openWifiSheet(){ wifiSheet.classList.add('show'); wifiMask.classList.add('show'); if(wifiState==='idle'||wifiState==='connecting'){ wifiState='connecting'; updateWifiStatus(); startWifiConnect(); } else { updateWifiStatus(); } startWifiRotate(); }
+      function closeWifiSheet(){ wifiSheet.classList.remove('show'); wifiMask.classList.remove('show'); stopWifiRotate(); }
+      wifiBtn.onclick = () => { if(wifiState==='connected'){ showToast('已连接 ZHUZHOU-BUS 网络'); return; } openWifiSheet(); };
+      $('#wifiLater').onclick = closeWifiSheet;
+      wifiMask.onclick = closeWifiSheet;
+      wifiQuestionList.addEventListener('click', e => { const q=e.target.closest('.wifi-q'); if(!q) return; closeWifiSheet(); ask(q.dataset.q, q.dataset.t); });
 
       function toggleSound(btn) {
         soundOn = !soundOn;
