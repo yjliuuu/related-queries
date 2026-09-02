@@ -488,6 +488,47 @@
     .wifi-ad .chev{flex:none;font-size:17px;color:#c4c4cc;font-weight:300}
     .wifi-connect.connected{padding:0;border:0;background:transparent}
     .wifi-connect .wifi-connected-img{display:block;width:134px;height:auto;object-fit:contain}
+    /* 实时公交·下车提醒设置弹窗 */
+    .remind-btn{display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+    .remind-btn .bell{flex:none;width:14px;height:14px}
+    .remind-sheet{position:absolute;left:0;right:0;bottom:0;z-index:31;background:#fff;border-radius:22px 22px 0 0;transform:translateY(130%);transition:transform .32s cubic-bezier(.22,.75,.25,1);box-shadow:0 -12px 40px rgba(0,0,0,.14)}
+    .remind-sheet.show{transform:translateY(0)}
+    .remind-head{position:relative;min-height:102px;padding:14px 80px 18px 20px;background:linear-gradient(180deg,#FFF3C9 0%,#FFFDF5 68%,#FFFFFF 100%);border-radius:22px 22px 0 0}
+    .remind-title{margin:0;font-size:18px;font-weight:800;color:#1a1a1a;letter-spacing:-.4px;line-height:1.35}
+    .remind-ai{position:absolute;top:-30px;right:46px;width:112px;height:auto;pointer-events:none;-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent);mask-image:linear-gradient(180deg,#000 0%,#000 62%,transparent)}
+    .remind-close{position:absolute;top:-36px;right:14px;z-index:6;width:22px;height:22px;padding:0;background:transparent;cursor:pointer}
+    .remind-close img{display:block;width:22px;height:22px;object-fit:contain}
+    .remind-bubble{display:flex;align-items:center;gap:6px;margin-bottom:7px;font-size:12px;font-weight:500;color:#8a8a8a}
+    .remind-bubble .rm-ic{flex:none;display:grid;place-items:center;width:16px;height:16px}
+    .remind-bubble .rm-ic img{width:15px;height:15px;object-fit:contain;display:block}
+    .remind-bubble .rm-spin{width:13px;height:13px;border-radius:50%;border:2.5px solid #ffe08a;border-top-color:#e08600;animation:remSpin .9s linear infinite}
+    @keyframes remSpin{to{transform:rotate(360deg)}}
+    .remind-body{max-height:calc(100dvh - 210px);overflow-y:auto;scrollbar-width:none;padding:4px 16px 1px}
+    .remind-body::-webkit-scrollbar{display:none}
+    .remind-stations{padding:4px 0 6px}
+    .rm-row{display:grid;grid-template-columns:30px 1fr 26px;align-items:center;gap:8px;width:100%;padding:13px 4px;background:transparent;text-align:left;cursor:pointer}
+    .rm-rail{position:relative;height:22px}
+    .rm-line{position:absolute;left:15px;top:-14px;bottom:-14px;width:2px;background:#3ec97a}
+    .rm-node{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:13px;height:13px;border-radius:50%;background:#fff;border:3.5px solid #3ec97a;box-sizing:border-box}
+    .rm-row.passed .rm-line{background:#dcdcdc}
+    .rm-row.passed .rm-node{border-color:#d0d0d0;background:#fff}
+    .rm-row.passed .rm-name{color:#b8b8b8}
+    .rm-row.current .rm-node{width:25px;height:25px;background:url('assets/remind-next.png') center/contain no-repeat;border:0}
+    .rm-name{font-size:16px;font-weight:600;color:#222}
+    .rm-near{display:inline-block;margin-left:8px;color:#2b7fff;font-size:12px;font-weight:500}
+    .rm-radio{position:relative;width:20px;height:20px;border-radius:50%;border:2px solid #cfcfcf;justify-self:end;box-sizing:border-box;background:#fff}
+    .rm-row.sel .rm-radio{border:0;background:#ffd400}
+    .rm-row.sel .rm-radio:after{content:'✓';position:absolute;inset:0;display:grid;place-items:center;color:#111;font-size:13px;font-weight:900}
+    .rm-row.sel .rm-name{color:#121212}
+    .remind-foot{padding:10px 16px calc(18px + env(safe-area-inset-bottom));background:#fff}
+    .remind-confirm{display:block;width:100%;padding:15px;border-radius:999px;font-size:17px;font-weight:800;color:#111;background:#ffd400;cursor:pointer}
+    .remind-confirm:disabled{background:#efefef;color:#b5b5b5;cursor:default}
+    /* 下车提醒弹窗内固定词条(广告条)压缩为与其他词条同高单行 */
+    #remindQList .wifi-ad{align-items:center;padding:9px 14px 9px 8px;gap:10px;border:1px solid transparent;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(90deg,#6354F5,#BE34E2) border-box;background-clip:padding-box,border-box}
+    #remindQList .wifi-ad>img{flex:none;width:34px;height:34px;border-radius:8px;align-self:center}
+    #remindQList .wifi-ad-copy{flex:1;min-width:0;padding:0;gap:0;justify-content:flex-start}
+    #remindQList .wifi-ad-title{margin:0;font-size:16px;font-weight:700;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    #remindQList .wifi-ad .chev{font-size:19px}
   </style>
 </head>
 <body>
@@ -623,6 +664,20 @@
       <h2 class="wifi-sheet-title">这趟车，你想了解什么？</h2>
       <div class="wifi-question-list" id="wifiQuestionList"></div>
     </section>
+    <div class="wifi-mask" id="remindMask"></div>
+    <section class="remind-sheet" id="remindSheet" role="dialog" aria-modal="true" aria-label="设置下车提醒">
+      <div class="remind-head">
+        <div class="remind-bubble" id="remindBubble" hidden><span class="rm-ic" id="remindBubbleIcon"></span><span id="remindBubbleText">下车站设置中...</span></div>
+        <h2 class="remind-title" id="remindTitle">选择目的地 开启下车提醒</h2>
+        <img class="remind-ai" src="assets/remind-ai.png" alt="" />
+        <button class="remind-close" id="remindClose" aria-label="关闭弹窗"><img src="assets/remind-close.png" alt="" /></button>
+      </div>
+      <div class="remind-body">
+        <div class="remind-stations" id="remindStations"></div>
+        <div class="wifi-question-list" id="remindQList" hidden></div>
+      </div>
+      <div class="remind-foot"><button class="remind-confirm" id="remindConfirm" type="button" disabled>确认开启</button></div>
+    </section>
   </main>
   <script>
     (() => {
@@ -637,9 +692,8 @@
       function showView(next, direction = 'forward') { if (next === activeView) return; const prev = activeView; if (next === homeView) homeScroll.scrollTo({top:0,behavior:'auto'}); if (direction === 'back') next.style.transform = 'translateX(-18px)'; next.classList.add('active'); requestAnimationFrame(() => { next.style.transform = ''; prev.classList.add('leaving'); }); setTimeout(() => { prev.classList.remove('active','leaving'); activeView = next; }, 300); }
       function showToast(message) { clearTimeout(toastTimer); toast.textContent = message; toast.classList.add('show'); toastTimer = setTimeout(() => toast.classList.remove('show'), 1900); }
       function toggleFavorite() { favorite = !favorite; $$('#detailFavorite,#bottomFavorite,#titleFav').forEach(btn => btn?.classList.toggle('active', favorite)); showToast(favorite ? '已收藏' : '已取消'); }
-      function setDestination(node, enabled) { queryAll('.route-stop', node).forEach(st => { if (st.querySelector('.station-name')?.textContent.trim() !== '饭店站') return; st.classList.toggle('destination', enabled); let tag = st.querySelector('.destination-tag'); if (enabled) { if (!tag) { tag = document.createElement('span'); tag.className = 'destination-tag'; tag.textContent = '目的地'; st.appendChild(tag); } } else if (tag) { tag.remove(); } }); }
-      function setReminder(enabled) { queryAll('.remind-btn').forEach(btn => { btn.classList.toggle('set', enabled); btn.textContent = enabled ? '已设提醒' : '设置提醒'; }); [homeView, chatView].forEach(v => setDestination(v, enabled)); }
-      queryAll('.remind-btn').forEach(btn => btn.onclick = () => { const enabled = !btn.classList.contains('set'); setReminder(enabled); showToast(enabled ? '已设置饭店站到站提醒' : '已取消到站提醒'); });
+      function clearHomeDestination(){ queryAll('#homeView .route-stop').forEach(s=>{ s.classList.remove('destination'); const t=s.querySelector('.destination-tag'); if(t) t.parentNode.removeChild(t); }); }
+      function applyReminder(idx){ const stops=queryAll('#homeView .route-stop'); clearHomeDestination(); const target=stops[idx]; if(!target) return; target.classList.add('destination'); const tag=document.createElement('span'); tag.className='destination-tag'; tag.textContent='目的地'; target.appendChild(tag); const vp=$('#homeView .route-viewport'); const left=target.offsetLeft; if(vp) vp.scrollTo({left:Math.max(0,left-(vp.clientWidth-target.offsetWidth)/2),behavior:'smooth'}); }
             /* 连网弹窗模块：底部抽屉 + 遮罩 + 4 条问题轮动 */
       const wifiMask=$('#wifiMask'), wifiSheet=$('#wifiSheet'), wifiStatus=$('#wifiStatus'), wifiStatusIcon=$('#wifiStatusIcon'), wifiStatusText=$('#wifiStatusText'), wifiQuestionList=$('#wifiQuestionList'), wifiBtn=$('#wifiBtn');
       let wifiState='idle', wifiTimer=null, wifiOffset=0, wifiRotateId=null, wifiFadeId=null;
@@ -676,7 +730,49 @@
       $('#wifiLater').onclick = closeWifiSheet;
       wifiMask.onclick = closeWifiSheet;
       wifiQuestionList.addEventListener('click', e => { const ad=e.target.closest('.wifi-ad'); if(ad){ closeWifiSheet(); openDetail(); return; } const q=e.target.closest('.wifi-q'); if(!q) return; closeWifiSheet(); ask(q.dataset.q, q.dataset.t); });
-      function toggleSound() { soundOn = !soundOn; $$('#soundBtn,#chatSound').forEach(btn => btn.classList.toggle('active', soundOn)); showToast(soundOn ? '语音播报已开启' : '语音播报已关闭'); if (!soundOn && 'speechSynthesis' in window) speechSynthesis.cancel(); }
+      /* 下车提醒设置弹窗模块 */
+      const remindMask=$('#remindMask'), remindSheet=$('#remindSheet'), remindTitle=$('#remindTitle'), remindStations=$('#remindStations'), remindQList=$('#remindQList'), remindFoot=$('.remind-foot'), remindConfirm=$('#remindConfirm'), remindBubble=$('#remindBubble'), remindBubbleIcon=$('#remindBubbleIcon'), remindBubbleText=$('#remindBubbleText'), remindBtn=$('#remindBtn');
+      let remindState='off', remindSel=-1, rqOffset=0, rqRotateId=null, rqFadeId=null, remindTimer=null;
+      function rqSlots(){ return document.querySelectorAll('#remindQList .wifi-q'); }
+      function syncRQ(){ rqSlots().forEach((el,x)=>{ const it=wifiPool[(rqOffset+x)%wifiPool.length]; $('img',el).src=it.i; $('span',el).textContent=it.q; el.dataset.q=it.q; el.dataset.t=it.t; }); }
+      function buildRemindQList(){ remindQList.innerHTML=''; const ad=document.createElement('button'); ad.className='wifi-ad'; ad.type='button'; ad.setAttribute('aria-label','山西紫林金标生抽 点击进入商品详情'); ad.innerHTML='<img src="assets/wifi-zilin-thumb.png" alt="山西紫林金标生抽" /><div class="wifi-ad-copy"><p class="wifi-ad-title">山西紫林金标生抽 500ml · 紫林味业</p></div><span class="chev">›</span>'; remindQList.appendChild(ad); for(let x=0;x<3;x++){ const b=document.createElement('button'); b.className='wifi-q'; b.type='button'; b.innerHTML='<img alt="" /><span></span><span class="chev">›</span>'; remindQList.appendChild(b); } syncRQ(); }
+      function stopRQ(){ if(rqRotateId){clearInterval(rqRotateId); rqRotateId=null;} clearTimeout(rqFadeId); }
+      function startRQ(){ stopRQ(); rqRotateId=setInterval(()=>{ rqSlots().forEach(el=>el.classList.add('rotating-out')); clearTimeout(rqFadeId); rqFadeId=setTimeout(()=>{ rqOffset=(rqOffset+1)%wifiPool.length; syncRQ(); setTimeout(()=>rqSlots().forEach(el=>el.classList.remove('rotating-out')),40); },260); },3800); }
+      function setRemindBtn(on){ queryAll('.remind-btn').forEach(b=>{ b.classList.toggle('set',on); b.innerHTML = on ? '<span>取消提醒</span>' : '<svg class="bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 1 1 12 0v3.5l1.5 3H4.5l1.5-3V9z"/><path d="M10 19.5a2.2 2.2 0 0 0 4 0"/></svg><span>设置提醒</span>'; }); }
+      function openRemindSheet(){ remindSheet.classList.add('show'); remindMask.classList.add('show'); }
+      function closeRemindSheet(){ remindSheet.classList.remove('show'); remindMask.classList.remove('show'); stopRQ(); }
+      function openRemindPicker(){
+        remindStations.hidden=false; remindQList.hidden=true; remindFoot.style.display='block';
+        remindBubble.hidden=true; remindTitle.textContent='选择目的地 开启下车提醒';
+        const stops=queryAll('#homeView .route-stop');
+        remindStations.innerHTML='';
+        stops.forEach((s,i)=>{
+          const name=s.querySelector('.station-name').textContent; const passed=s.classList.contains('passed'); const current=s.classList.contains('current');
+          const row=document.createElement('button'); row.type='button'; row.className='rm-row'+(passed?' passed':'')+(current?' current':'');
+          const near=current?'<em class="rm-near">（最近）</em>':'';
+          row.innerHTML='<span class="rm-rail"><i class="rm-line"></i><b class="rm-node"></b></span><span class="rm-name"></span><span class="rm-radio"></span>';
+          row.querySelector('.rm-name').innerHTML=name+near;
+          row.onclick=()=>{ remindSel=i; [...remindStations.children].forEach((r,j)=>r.classList.toggle('sel',j===i)); remindConfirm.disabled=false; };
+          remindStations.appendChild(row);
+        });
+        remindConfirm.disabled=true;
+        openRemindSheet();
+      }
+      function startRemindSetup(idx){
+        remindStations.hidden=true; remindFoot.style.display='none';
+        remindTitle.textContent='这趟车，你想了解什么？';
+        remindBubble.hidden=false; remindBubbleText.textContent='下车站设置中...'; remindBubbleIcon.innerHTML='<i class="rm-spin"></i>';
+        if(!remindQList.children.length) buildRemindQList();
+        remindQList.hidden=false; startRQ();
+        clearTimeout(remindTimer);
+        remindTimer=setTimeout(()=>{ remindTimer=null; remindState='on'; setRemindBtn(true); applyReminder(idx); remindBubbleIcon.innerHTML='<img src="assets/remind-done.png" alt="" />'; remindBubbleText.textContent='下车站设置成功'; },3000);
+      }
+      remindBtn.onclick = () => { if(remindState==='on'){ remindState='off'; setRemindBtn(false); clearHomeDestination(); showToast('已取消下车提醒'); return; } openRemindPicker(); };
+      remindConfirm.onclick = () => { if(remindConfirm.disabled) return; startRemindSetup(remindSel); };
+      $('#remindClose').onclick = closeRemindSheet;
+      remindMask.onclick = closeRemindSheet;
+      remindQList.addEventListener('click', e => { const ad=e.target.closest('.wifi-ad'); if(ad){ closeRemindSheet(); openDetail(); return; } const q=e.target.closest('.wifi-q'); if(!q) return; closeRemindSheet(); ask(q.dataset.q, q.dataset.t); });
+      function toggleSound() { soundOn = !soundOn; $('#soundBtn,#chatSound').forEach(btn => btn.classList.toggle('active', soundOn)); showToast(soundOn ? '语音播报已开启' : '语音播报已关闭'); if (!soundOn && 'speechSynthesis' in window) speechSynthesis.cancel(); }
       $('#soundBtn').onclick = toggleSound; $('#chatSound').onclick = toggleSound; $('#moreBtn').onclick = () => showToast('支持线路、实时公交、好物推荐与到站提醒');
       $('#detailBack').onclick = () => showView(homeView, 'back'); $('#chatBack').onclick = () => showView(homeView, 'back'); $('#hotelAd').onclick = openDetail; $('#hotelAd').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') openDetail(); };
       const df = $('#detailFavorite'); if (df) df.onclick = toggleFavorite; const bf = $('#bottomFavorite'); if (bf) bf.onclick = e => { e.stopPropagation(); toggleFavorite(); }; const tf = $('#titleFav'); if (tf) tf.onclick = e => { e.stopPropagation(); toggleFavorite(); };
