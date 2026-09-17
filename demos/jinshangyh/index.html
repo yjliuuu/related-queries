@@ -516,6 +516,19 @@
     .remind-confirm:disabled{background:#efefef;color:#b5b5b5;cursor:default}
     /* 下车提醒弹窗内广告 banner 全宽展示 */
     #remindQList .wifi-banner-ad{border-radius:14px}
+    /* 微信风格打开外部跳转确认弹窗 */
+    .confirm-mask{position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .22s ease,visibility .22s}
+    .confirm-mask.show{opacity:1;visibility:visible}
+    .wechat-confirm{width:min(78%,286px);background:#fff;border-radius:12px;overflow:hidden;text-align:center;transform:scale(.92);opacity:0;transition:transform .22s ease,opacity .22s ease}
+    .confirm-mask.show .wechat-confirm{transform:scale(1);opacity:1}
+    .wechat-confirm-head{padding:22px 18px 6px;color:#191919;font-size:17px;font-weight:700;letter-spacing:-.2px;line-height:1.4}
+    .wechat-confirm-body{padding:12px 18px 22px;color:#9a9a9a;font-size:14px;line-height:1.55}
+    .wechat-confirm-btns{display:flex;border-top:1px solid #e6e6e6;font-size:17px}
+    .wechat-confirm-btns button{flex:1;padding:13px 0;background:#fff;color:#576b95;font-size:17px;cursor:pointer;transition:background .15s ease}
+    .wechat-confirm-btns button:active{background:#f3f3f3}
+    .wechat-confirm-btns button + button{border-left:1px solid #e6e6e6}
+    .wechat-confirm .btn-cancel{color:#191919}
+    .wechat-confirm .btn-allow{color:#576b95;font-weight:600}
   </style>
 </head>
 <body>
@@ -665,6 +678,13 @@
       </div>
       <div class="remind-foot"><button class="remind-confirm" id="remindConfirm" type="button" disabled>确认开启</button></div>
     </section>
+    <div class="confirm-mask" id="confirmMask" role="dialog" aria-modal="true" aria-label="打开公众号确认">
+      <div class="wechat-confirm">
+        <div class="wechat-confirm-head">即将打开公众号"晋商银行"的内容</div>
+        <div class="wechat-confirm-body">《新客专享｜新客晋喜福利继续，新开借记卡即享多样专属好礼》</div>
+        <div class="wechat-confirm-btns"><button type="button" class="btn-cancel" id="confirmCancel">取消</button><button type="button" class="btn-allow" id="confirmAllow">允许</button></div>
+      </div>
+    </div>
   </main>
   <script>
     (() => {
@@ -812,7 +832,13 @@
       }
       detailScroll.addEventListener('scroll', () => { syncDetailHeader(); syncDetailTab(); }, {passive:true});
       function openDetail() { $('#detailScroll').scrollTop = 0; detailView.classList.remove('header-scrolled'); $('.carousel-tabs button').forEach(t => t.classList.toggle('active', t.dataset.target === 'product')); showView(detailView); }
-      function openJinshangArticle() { window.open('https://mp.weixin.qq.com/s/M_qk2hGR0xvkBPi_hSi_fw', '_blank'); }
+      const JINSHANG_URL = 'https://mp.weixin.qq.com/s/M_qk2hGR0xvkBPi_hSi_fw';
+      const confirmMask = $('#confirmMask'), confirmAllow = $('#confirmAllow'), confirmCancel = $('#confirmCancel');
+      function openJinshangArticle() { confirmMask.classList.add('show'); }
+      function closeJinshangConfirm() { confirmMask.classList.remove('show'); }
+      confirmAllow.onclick = () => { closeJinshangConfirm(); window.open(JINSHANG_URL, '_blank'); };
+      confirmCancel.onclick = () => { closeJinshangConfirm(); showView(homeView, 'back'); };
+      confirmMask.onclick = e => { if (e.target === confirmMask) { closeJinshangConfirm(); showView(homeView, 'back'); } };
       function bindComposer(form,input) { form.addEventListener('submit', e => { e.preventDefault(); const value=input.value.trim(); if(!value){input.focus();return} input.value=''; let type='default'; if(value.includes('好物')||value.includes('生抽')||value.includes('紫林')||value.includes('酱油')||value.includes('特产')) type='goods'; else if(value.includes('多久')||value.includes('到站')) type='arrival'; else if(value.includes('提醒')) type='reminder'; else if(value.includes('末班')||value.includes('几点')) type='schedule'; else if(value.includes('换乘')||value.includes('火车站')) type='route'; else if(value.includes('吃')||value.includes('美食')) type='food'; else if(value.includes('地标')||value.includes('景区')) type='landmark'; ask(value,type); }); }
       bindComposer($('#homeComposer'),$('#homeInput')); bindComposer($('#chatComposer'),$('#chatInput'));
       $$('[data-voice]').forEach(btn => btn.onclick = () => { const form=btn.closest('form'),input=$('input',form); btn.classList.add('listening'); input.placeholder='正在聆听…'; setTimeout(() => { btn.classList.remove('listening'); input.value='太原有什么好物推荐'; input.placeholder=form.id==='homeComposer'?'太原有什么好物推荐':'继续问我，例如"太原有什么好物推荐"'; showToast('已识别：太原有什么好物推荐'); },1050); });
